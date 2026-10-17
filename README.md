@@ -2,7 +2,7 @@
 
 CrawlMarks helps barebow archers make distance marks for their tab.
 
-**Try it:** https://jotux.github.io/BareMarks/
+**Try it:** https://jotux.github.io/CrawlMarks/
 
 Barebow archers aim by string walking: they move their hand down the string below the nock by a set amount (the "crawl") for each distance. Many mark these crawl positions on the tab face. CrawlMarks turns a few sight-in readings into a full set of tab marks and a key card that maps each mark to a distance.
 
