@@ -145,7 +145,7 @@ export function Sheet({ state, setState, result, readings }: {
       </Screen>
 
       <section className="print-only print-page">
-        <h1>Baremarks marker sheet</h1>
+        <h1>CrawlMarks marker sheet</h1>
         <div className="print-row">
           <div>
             <h2>Tab template · 1:1</h2>

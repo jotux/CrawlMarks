@@ -1,26 +1,26 @@
-# Baremarks
+# CrawlMarks
 
-Baremarks helps barebow archers make distance marks for their tab.
+CrawlMarks helps barebow archers make distance marks for their tab.
 
 **Try it:** https://jotux.github.io/BareMarks/
 
-Barebow archers aim by string walking: they move their hand down the string below the nock by a set amount (the "crawl") for each distance. Many mark these crawl positions on the tab face. Baremarks turns a few sight-in readings into a full set of tab marks and a key card that maps each mark to a distance.
+Barebow archers aim by string walking: they move their hand down the string below the nock by a set amount (the "crawl") for each distance. Many mark these crawl positions on the tab face. CrawlMarks turns a few sight-in readings into a full set of tab marks and a key card that maps each mark to a distance.
 
 ## How it works
 
 The app walks you through five steps:
 
 1. **Describe your tab.** Enter your shooting hand, the size of the tab face, the part of the face you can mark, and the distances you want to sight in.
-2. **Print a sight-in strip.** Baremarks makes a strip sized to your tab that reads 0–50 down the marking zone, whatever size your tab is. Numbered major lines sit every 10, with ten divisions between them (a longer tick at each 5). On a zone shorter than 50 mm the small ticks drop to every 2 units so they stay at least 1 mm apart. Print it at 100% scale, check it against the 50 mm scale bar, cut it out and stick it on the tab.
+2. **Print a sight-in strip.** CrawlMarks makes a strip sized to your tab that reads 0–50 down the marking zone, whatever size your tab is. Numbered major lines sit every 10, with ten divisions between them (a longer tick at each 5). On a zone shorter than 50 mm the small ticks drop to every 2 units so they stay at least 1 mm apart. Print it at 100% scale, check it against the 50 mm scale bar, cut it out and stick it on the tab.
 3. **Enter your readings.** Shoot each distance until your arrows group, then enter the strip reading level with your nock. The number is 0–50, and you can judge halfway between ticks. Mark the distance where you are point-on, meaning no crawl is needed.
-4. **Fit the curve.** Baremarks fits a curve through your readings and shows how well it matches them.
+4. **Fit the curve.** CrawlMarks fits a curve through your readings and shows how well it matches them.
 5. **Get your marker sheet.** You get two things to print:
    - **A tab template at 1:1.** It has only plain lines: a long line every 5 m and a short line for each step in between (you pick how many). Its width starts at your tab's face width and can be set anywhere from 10 mm up to 20 mm wider than the face.
    - **A key card the size of a US business card** (3.5 × 2 in). It shows the same line layout, stretched to fill the card's height, with every line numbered (L1, L2, L2·3 and so on) and the distance it stands for. It fits in a wallet or quiver pocket, not on the tab.
 
 ## The crawl model
 
-Close up, your arrow sits below your line of sight, so the crawl does not keep shrinking as you move closer. It grows to a peak (the **fold**) and then shrinks again. Baremarks fits this model to your readings:
+Close up, your arrow sits below your line of sight, so the crawl does not keep shrinking as you move closer. It grows to a peak (the **fold**) and then shrinks again. CrawlMarks fits this model to your readings:
 
 ```
 crawl(d) = a − b/d − c·d
@@ -38,7 +38,7 @@ Under World Archery barebow rules, marks on a tab must be simple and uniform. Th
 
 ## Standalone by design
 
-Baremarks needs no server, account or network connection. The build is a single `index.html` with its code, styles and fonts inlined. Open it from disk, put it on a USB stick, or host it on any static web server. Your tab size and readings are saved in your browser's local storage and never leave your device.
+CrawlMarks needs no server, account or network connection. The build is a single `index.html` with its code, styles and fonts inlined. Open it from disk, put it on a USB stick, or host it on any static web server. Your tab size and readings are saved in your browser's local storage and never leave your device.
 
 Printing uses the browser's own print dialog, which can also save to PDF. The strip, tab template and key card print at true millimetre size, so always print at 100% scale.
 

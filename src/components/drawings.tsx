@@ -24,7 +24,7 @@ function TickLine({ style, long, minor, x0, w, y, strokeWidth }: {
 export function LogoImage({ width, trueSize }: { width: number; trueSize?: boolean }) {
   const h = logoHeight(width);
   return (
-    <svg viewBox={`0 0 ${width} ${h}`} {...size(width, h, trueSize)} role="img" aria-label="Baremarks">
+    <svg viewBox={`0 0 ${width} ${h}`} {...size(width, h, trueSize)} role="img" aria-label="CrawlMarks">
       <Logo x={0} y={0} width={width} />
     </svg>
   );
@@ -59,22 +59,25 @@ function facePath(w: number, h: number) {
 
 const CUT = { fill: 'none', stroke: '#4A5650', strokeWidth: 0.3, strokeDasharray: '1.5 1' };
 
-/** Height of the logo (wordmark plus ruler) for a given width. */
-export const logoHeight = (width: number) => width * 0.3;
+/** Logo width per unit of font size: ten condensed capitals, CRAWLMARKS. */
+const LOGO_WIDTH_PER_FONT = 4.8;
+
+/** Height of the logo (wordmark plus ruler) for a given width, with a little room below the ruler. */
+export const logoHeight = (width: number) => (width / LOGO_WIDTH_PER_FONT) * 1.3;
 
 /**
- * The Baremarks wordmark with its ruler, drawn in mm with its top-left at (x, y).
+ * The CrawlMarks wordmark with its ruler, drawn in mm with its top-left at (x, y).
  * textLength pins the word to `width` so the ruler always lines up under it.
  */
 export function Logo({ x, y, width }: { x: number; y: number; width: number }) {
-  const font = width / 4.3;
+  const font = width / LOGO_WIDTH_PER_FONT;
   const rulerY = y + font * 0.95;
   const rulerH = font * 0.28;
   return (
-    <g aria-label="Baremarks">
+    <g aria-label="CrawlMarks">
       <text x={x} y={y + font * 0.78} fontSize={font} className="svg-display" fontWeight={700}
         textLength={width} lengthAdjust="spacingAndGlyphs" fill="#17201B">
-        BARE<tspan fill="#B07A00">MARKS</tspan>
+        CRAWL<tspan fill="#B07A00">MARKS</tspan>
       </text>
       <rect x={x} y={rulerY} width={width} height={rulerH * 0.23} fill="#B07A00" />
       {Array.from({ length: 21 }, (_, i) => (

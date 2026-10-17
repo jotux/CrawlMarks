@@ -1,6 +1,6 @@
 {
-  "name": "Baremarks",
-  "short_name": "Baremarks",
+  "name": "CrawlMarks",
+  "short_name": "CrawlMarks",
   "description": "Turn barebow string-walking readings into marks for your tab.",
   "start_url": "./",
   "scope": "./",

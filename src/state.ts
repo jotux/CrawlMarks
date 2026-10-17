@@ -41,9 +41,10 @@ export const defaultState: AppState = {
   templateWidth: null,
 };
 
-const STORAGE_KEY = 'baremarks:v3';
+const STORAGE_KEY = 'crawlmarks:v3';
 /** Older saves, newest first, with how many of their reading units fit in the zone */
 const OLDER_KEYS: { key: string; units: (tab: TabSpec) => number }[] = [
+  { key: 'baremarks:v3', units: () => SCALE_MAX }, // same format, saved before the rename
   { key: 'baremarks:v2', units: () => 100 },
   { key: 'baremarks:v1', units: (tab) => zoneLength(tab) }, // mm
 ];

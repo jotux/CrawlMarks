@@ -21,6 +21,6 @@ const fullReload = (): Plugin => ({
 export default defineConfig({
   plugins: [react(), viteSingleFile(), fullReload()],
   // keep Vite's cache out of the project: Dropbox locks files mid-sync and breaks dep re-optimisation
-  cacheDir: path.join(os.tmpdir(), 'baremarks-vite'),
+  cacheDir: path.join(os.tmpdir(), 'crawlmarks-vite'),
   base: './',
 });
