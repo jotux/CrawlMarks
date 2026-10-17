@@ -21,9 +21,13 @@ export interface AppState {
   readings: Record<string, string>;
   minorMarks: number;
   tickStyle: TickStyle;
+  /** mm width of the final tab template; null follows the face width from setup */
+  templateWidth: number | null;
 }
 
 export const MINOR_RANGE = { min: 1, max: 10 };
+/** mm the final tab template may span: at least 10, and up to 20 wider than the setup face */
+export const templateWidthRange = (tab: TabSpec) => ({ min: 10, max: Math.max(10, tab.faceWidth + 20) });
 
 /** The sight-in strip reads 0–50 across the marking zone, whatever its size. */
 export const SCALE_MAX = 50;
@@ -34,6 +38,7 @@ export const defaultState: AppState = {
   readings: {},
   minorMarks: 4,
   tickStyle: DEFAULT_TICK_STYLE,
+  templateWidth: null,
 };
 
 const STORAGE_KEY = 'baremarks:v3';
@@ -87,6 +92,14 @@ export function useAppState() {
   }, [state]);
   return [state, setState] as const;
 }
+
+export const clampTemplateWidth = (tab: TabSpec, n: number) => {
+  const { min, max } = templateWidthRange(tab);
+  return Math.min(max, Math.max(min, Math.round(n)));
+};
+
+/** Width the final tab template is drawn at, kept inside templateWidthRange. */
+export const templateWidth = (state: AppState) => clampTemplateWidth(state.tab, state.templateWidth ?? state.tab.faceWidth);
 
 export const zoneLength = (tab: TabSpec) => tab.zoneEnd - tab.zoneStart;
 /** mm down the tab face for a strip reading */

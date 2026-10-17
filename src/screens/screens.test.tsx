@@ -37,6 +37,13 @@ describe('screens', () => {
     expect(html.sheet).toContain('FOLD');
   });
 
+  it('draw the tab template at its own width, kept in range', () => {
+    expect(render(sample).sheet).toContain('38 × 72 mm');
+    expect(render({ ...sample, templateWidth: 25 }).sheet).toContain('25 × 72 mm');
+    expect(render({ ...sample, templateWidth: 200 }).sheet).toContain('58 × 72 mm');
+    expect(render({ ...sample, templateWidth: 4 }).sheet).toContain('10 × 72 mm');
+  });
+
   it('explain what is missing before there are readings', () => {
     const html = render(defaultState);
     expect(html.readings).toContain('Enter readings for at least three distances.');

@@ -5,7 +5,7 @@ import { FitResult, Reading, crawlAt } from '../model/fit';
 import { buildMarks, nearLabels } from '../model/marks';
 import { TickStyle, tickSegments } from '../model/tickStyles';
 import { TickStylePicker } from '../components/TickStylePicker';
-import { AppState, MINOR_RANGE, SCALE_MAX } from '../state';
+import { AppState, MINOR_RANGE, SCALE_MAX, clampTemplateWidth, templateWidth, templateWidthRange } from '../state';
 
 function LegendLine({ style, long }: { style: TickStyle; long: boolean }) {
   return (
@@ -14,6 +14,32 @@ function LegendLine({ style, long }: { style: TickStyle; long: boolean }) {
     </svg>
   );
 }
+
+function Stepper({ label, note, value, unit, min, max, less, more, onChange }: {
+  label: string; note: string; value: number; unit?: string; min: number; max: number;
+  less: string; more: string; onChange: (n: number) => void;
+}) {
+  return (
+    <div className="card stepper">
+      <div>
+        <div className="stepper-label">{label}</div>
+        <div className="muted mono small">{note}</div>
+      </div>
+      <div className="stepper-controls">
+        <button aria-label={less} disabled={value <= min} onClick={() => onChange(value - 1)}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M5 12h14" /></svg>
+        </button>
+        <output aria-live="polite">{value}{unit && <span className="stepper-unit">{unit}</span>}</output>
+        <button aria-label={more} disabled={value >= max} onClick={() => onChange(value + 1)}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** On-screen scale for the template preview, fixed so a width change reads as width, not length. */
+const PREVIEW_PX_PER_MM = 2.6;
 
 const RULES = [
   'Two line lengths only, same thickness and colour',
@@ -37,7 +63,11 @@ export function Sheet({ state, setState, result, readings }: {
   }
 
   const { fit } = result;
-  const { tab, minorMarks: minor, tickStyle } = state;
+  const { minorMarks: minor, tickStyle } = state;
+  const width = templateWidth(state);
+  const widthRange = templateWidthRange(state.tab);
+  // the strip and key card follow the setup tab; only the final template takes its own width
+  const tab = { ...state.tab, faceWidth: width };
   const marks = buildMarks(fit, {
     minor,
     scaleMax: SCALE_MAX,
@@ -48,6 +78,7 @@ export function Sheet({ state, setState, result, readings }: {
   const foldCrawl = fit.fold !== null && crawlAt(fit, fit.fold) <= SCALE_MAX ? crawlAt(fit, fit.fold) : null;
   const setMinor = (n: number) =>
     setState((s) => ({ ...s, minorMarks: Math.min(MINOR_RANGE.max, Math.max(MINOR_RANGE.min, n)) }));
+  const setWidth = (n: number) => setState((s) => ({ ...s, templateWidth: clampTemplateWidth(s.tab, n) }));
   const step = 5 / (minor + 1);
   const keyCard = (trueSize?: boolean) => (
     <KeyCard tab={tab} marks={marks} style={tickStyle} near={near} foldCrawl={foldCrawl} foldDistance={fit.fold} trueSize={trueSize} />
@@ -61,21 +92,13 @@ export function Sheet({ state, setState, result, readings }: {
         intro="Plain lines go on the tab. The key card is the same layout, numbered, and stays in your quiver."
         footer={<PrintButton label="Print or save as PDF" />}
       >
-        <div className="card stepper">
-          <div>
-            <div className="stepper-label">Small marks between</div>
-            <div className="muted mono small">≈ {step.toFixed(minor >= 4 ? 2 : 1)} m per mark</div>
-          </div>
-          <div className="stepper-controls">
-            <button aria-label="Fewer small marks" disabled={minor <= MINOR_RANGE.min} onClick={() => setMinor(minor - 1)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M5 12h14" /></svg>
-            </button>
-            <output aria-live="polite">{minor}</output>
-            <button aria-label="More small marks" disabled={minor >= MINOR_RANGE.max} onClick={() => setMinor(minor + 1)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-            </button>
-          </div>
-        </div>
+        <Stepper label="Small marks between" note={`≈ ${step.toFixed(minor >= 4 ? 2 : 1)} m per mark`}
+          value={minor} min={MINOR_RANGE.min} max={MINOR_RANGE.max}
+          less="Fewer small marks" more="More small marks" onChange={setMinor} />
+
+        <Stepper label="Tab face width" note={`${widthRange.min}–${widthRange.max} mm · strip is ${state.tab.faceWidth} mm`}
+          value={width} unit="mm" min={widthRange.min} max={widthRange.max}
+          less="Narrower tab face" more="Wider tab face" onChange={setWidth} />
 
         <div className="card stepper">
           <div className="stepper-label">Tick style</div>
@@ -87,9 +110,10 @@ export function Sheet({ state, setState, result, readings }: {
         ) : (
           <>
             <section className="card template-card">
-              <div className="template-preview"><TabTemplate tab={tab} marks={marks} style={tickStyle} /></div>
+              <div className="template-preview" style={{ width: width * PREVIEW_PX_PER_MM, maxWidth: '50%' }}><TabTemplate tab={tab} marks={marks} style={tickStyle} /></div>
               <div className="template-info">
                 <h2 className="label-caps">Tab face · 1:1</h2>
+                <span className="muted mono tiny">{width} × {tab.faceLength} mm</span>
                 <div className="legend">
                   <span><LegendLine style={tickStyle} long />Long line, every 5 m</span>
                   <span><LegendLine style={tickStyle} long={false} />Short line, {minor} per gap</span>
