@@ -3,8 +3,11 @@ import { STEPS } from '../steps';
 // bump package.json "version" with each fix or feature; only this field is bundled
 import { version } from '../../package.json';
 
-// phones and tablets are driven by a finger; desktops (touchscreen laptops included) by a mouse or trackpad
-const platform = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches ? 'Mobile' : 'Desktop';
+// phones and tablets are driven by a finger; desktops (touchscreen laptops included) by a mouse or trackpad.
+// ?device=mobile or ?device=desktop overrides it, for previewing both side by side (preview.html)
+const forced = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('device') : null;
+const platform = forced === 'mobile' ? 'Mobile' : forced === 'desktop' ? 'Desktop'
+  : typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches ? 'Mobile' : 'Desktop';
 
 function Wordmark() {
   const ticks = Array.from({ length: 21 }, (_, i) => i * 5);
