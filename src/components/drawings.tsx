@@ -59,8 +59,10 @@ function facePath(w: number, h: number) {
 
 const CUT = { fill: 'none', stroke: '#4A5650', strokeWidth: 0.3, strokeDasharray: '1.5 1' };
 
-/** Logo width per unit of font size: ten condensed capitals, CRAWLMARKS. */
-const LOGO_WIDTH_PER_FONT = 4.8;
+/** Size of the small capitals (RAWL, ARKS) relative to the C and M. */
+const LOGO_SMALL_CAPS = 0.75;
+/** Logo width per unit of font size: CRAWLMARKS in condensed capitals, eight of them small. */
+const LOGO_WIDTH_PER_FONT = 0.48 * (2 + 8 * LOGO_SMALL_CAPS);
 
 /** Height of the logo (wordmark plus ruler) for a given width, with a little room below the ruler. */
 export const logoHeight = (width: number) => (width / LOGO_WIDTH_PER_FONT) * 1.3;
@@ -77,7 +79,8 @@ export function Logo({ x, y, width }: { x: number; y: number; width: number }) {
     <g aria-label="CrawlMarks">
       <text x={x} y={y + font * 0.78} fontSize={font} className="svg-display" fontWeight={700}
         textLength={width} lengthAdjust="spacingAndGlyphs" fill="#17201B">
-        CRAWL<tspan fill="#B07A00">MARKS</tspan>
+        C<tspan fontSize={font * LOGO_SMALL_CAPS}>RAWL</tspan>
+        <tspan fill="#B07A00">M<tspan fontSize={font * LOGO_SMALL_CAPS}>ARKS</tspan></tspan>
       </text>
       <rect x={x} y={rulerY} width={width} height={rulerH * 0.23} fill="#B07A00" />
       {Array.from({ length: 21 }, (_, i) => (

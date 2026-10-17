@@ -7,7 +7,7 @@ function Wordmark() {
   const ticks = Array.from({ length: 21 }, (_, i) => i * 5);
   return (
     <div className="wordmark" role="img" aria-label="CrawlMarks">
-      <div className="wordmark-text">Crawl<span>marks</span></div>
+      <div className="wordmark-text">C<small>rawl</small><span>M<small>arks</small></span></div>
       <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true">
         <rect x="0" y="0" width="100" height="1.4" />
         {ticks.map((x) => (
