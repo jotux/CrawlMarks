@@ -3,7 +3,7 @@ import { fitCrawl, type CrawlFit } from './fit';
 import { buildMarks, nearLabels } from './marks';
 
 const exact = (d: number) => 60 - 200 / d - 1.2 * d;
-const r = fitCrawl([5, 10, 18, 25, 30, 40].map((d) => ({ distance: d, crawl: exact(d) })));
+const r = fitCrawl([5, 10, 18, 25, 30, 40].map((d) => ({ distance: d, crawl: exact(d) })), 'fold');
 if (!r.ok) throw new Error(r.reason);
 const fit: CrawlFit = r.fit;
 const opts = { minor: 4, scaleMax: 52, nearestReading: 5, farthestReading: 40 };

@@ -31,13 +31,13 @@ export default function App() {
   const [state, setState] = useAppState();
   const step = useStep();
   const readings = useMemo(() => validReadings(state), [state]);
-  const result = useMemo(() => fitCrawl(readings), [readings]);
+  const result = useMemo(() => fitCrawl(readings, state.curveModel), [readings, state.curveModel]);
 
   switch (step) {
     case 'setup': return <Setup state={state} setState={setState} />;
     case 'strip': return <Strip state={state} />;
     case 'readings': return <Readings state={state} setState={setState} />;
-    case 'fit': return <Fit state={state} result={result} readings={readings} />;
+    case 'fit': return <Fit state={state} setState={setState} result={result} readings={readings} />;
     case 'sheet': return <Sheet state={state} setState={setState} result={result} readings={readings} />;
   }
 }

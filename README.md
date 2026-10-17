@@ -13,20 +13,24 @@ The app walks you through five steps:
 1. **Describe your tab.** Enter your shooting hand, the size of the tab face, the part of the face you can mark, and the distances you want to sight in.
 2. **Print a sight-in strip.** CrawlMarks makes a strip sized to your tab that reads 0–50 down the marking zone, whatever size your tab is. Numbered major lines sit every 10, with ten divisions between them (a longer tick at each 5). On a zone shorter than 50 mm the small ticks drop to every 2 units so they stay at least 1 mm apart. Print it at 100% scale, check it against the 50 mm scale bar, cut it out and stick it on the tab.
 3. **Enter your readings.** Shoot each distance until your arrows group, then enter the strip reading level with your nock. The number is 0–50, and you can judge halfway between ticks. Mark the distance where you are point-on, meaning no crawl is needed.
-4. **Fit the curve.** CrawlMarks fits a curve through your readings and shows how well it matches them.
+4. **Fit the curve.** CrawlMarks fits a curve through your readings and shows how well it matches them. You can pick which curve to use.
 5. **Get your marker sheet.** You get two things to print:
    - **A tab template at 1:1.** It has only plain lines: a long line every 5 m and a short line for each step in between (you pick how many). Its width starts at your tab's face width and can be set anywhere from 10 mm up to 20 mm wider than the face.
    - **A key card the size of a US business card** (3.5 × 2 in). It shows the same line layout, stretched to fill the card's height, with every line numbered (L1, L2, L2·3 and so on) and the distance it stands for. It fits in a wallet or quiver pocket, not on the tab.
 
 ## The crawl model
 
-Close up, your arrow sits below your line of sight, so the crawl does not keep shrinking as you move closer. It grows to a peak (the **fold**) and then shrinks again. CrawlMarks fits this model to your readings:
+On the curve step you choose the curve to fit to your readings. `d` is the distance in metres.
 
-```
-crawl(d) = a − b/d − c·d
-```
+| Curve | Formula | When to use it |
+|---|---|---|
+| **Quadratic** (default) | `a − c·d − e·d²` | Aiming with the arrow point. The arrow slows as it flies, so crawl bends slightly with distance. |
+| **Linear** | `a − c·d` | A few readings over a narrow range of distances. |
+| **Fold** | `a − b/d − c·d` | Readings where crawl peaks and then shrinks again up close. |
+| **Manual (join the dots)** | none | A smooth line through every reading that never overshoots between them. Errors in a reading are not smoothed out. |
+| **Auto** | | Picks linear, quadratic or fold, whichever best predicts each reading from the others. |
 
-Here `d` is the distance in metres. The fold is at `d = √(b/c)`. Each near distance `d` shares its crawl with a far distance `b / (c·d)`, so one tab line works for both. The key card lists near distances against the far mark they share. That is why the app suggests sighting in at a few short distances as well as long ones. Which distances count as near is only decided after sight-in, from where the fitted fold falls.
+If the chosen curve peaks inside your readings, that peak is the **fold**. Each near distance then shares its crawl with a far distance on the other side of the fold, so one tab line works for both. The key card lists near distances against the far mark they share.
 
 ## World Archery rules
 

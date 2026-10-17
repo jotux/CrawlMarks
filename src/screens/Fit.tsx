@@ -1,6 +1,37 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { NextLink, Screen, Tip } from '../components/Screen';
-import { CrawlFit, FitResult, Miss, Reading, crawlAt, offCurve, twinDistance } from '../model/fit';
+import { CURVE_MODELS, CrawlFit, CurveKind, CurveModel, FitResult, Miss, Reading, crawlAt, isCurveModel, offCurve, twinDistance } from '../model/fit';
 import { AppState, SCALE_MAX, fmtMetres } from '../state';
+
+const INTRO = 'Pick how to draw a line through your readings. Your tab marks are placed along it.';
+
+const CURVES: Record<CurveModel, { name: string; formula?: string; about: string }> = {
+  auto: { name: 'Auto', about: 'Picks the curve that best predicts each reading from the others.' },
+  linear: { name: 'Linear', formula: 'a − c·d', about: 'A straight line: crawl shrinks evenly with distance.' },
+  quadratic: { name: 'Quadratic', formula: 'a − c·d − e·d²', about: 'Bends as the arrow slows in flight. Best fit for aiming with the arrow point.' },
+  fold: { name: 'Fold', formula: 'a − b/d − c·d', about: 'Crawl peaks, then shrinks again up close.' },
+  manual: { name: 'Manual (join the dots)', about: 'A smooth line through every reading. Errors in a reading are not smoothed out.' },
+};
+
+function CurvePicker({ value, used, onChange }: { value: CurveModel; used: CurveKind | null; onChange: (m: CurveModel) => void }) {
+  const shown = value === 'auto' ? used : value;
+  return (
+    <div className="field">
+      <label className="field-label" htmlFor="curve-model">Curve</label>
+      <span className="field-box select-box">
+        <select id="curve-model" value={value} onChange={(e) => isCurveModel(e.target.value) && onChange(e.target.value)}>
+          {CURVE_MODELS.map((m) => <option key={m} value={m}>{CURVES[m].name}</option>)}
+        </select>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+      </span>
+      <p className="muted small curve-about">
+        {value === 'auto' && (used ? <>Using <strong>{CURVES[used].name}</strong>. </> : null)}
+        {shown && CURVES[shown].formula && <span className="mono">crawl = {CURVES[shown].formula} · </span>}
+        {CURVES[shown ?? value].about}
+      </p>
+    </div>
+  );
+}
 
 const ACCENT = '#E0A100';
 const MISS = 'var(--miss)';
@@ -72,10 +103,20 @@ function CrawlChart({ fit, readings, misses }: { fit: CrawlFit; readings: Readin
   );
 }
 
-export function Fit({ state, result, readings }: { state: AppState; result: FitResult; readings: Reading[] }) {
+export function Fit({ state, setState, result, readings }: {
+  state: AppState;
+  setState: Dispatch<SetStateAction<AppState>>;
+  result: FitResult;
+  readings: Reading[];
+}) {
+  const picker = (
+    <CurvePicker value={state.curveModel} used={result.ok ? result.fit.kind : null}
+      onChange={(curveModel) => setState((s) => ({ ...s, curveModel }))} />
+  );
   if (!result.ok) {
     return (
-      <Screen step={3} title="Your crawl curve" intro="We couldn't fit a curve yet.">
+      <Screen step={3} title="Your crawl curve" intro={INTRO}>
+        {picker}
         <Tip tone="warn">{result.reason}</Tip>
       </Screen>
     );
@@ -83,7 +124,12 @@ export function Fit({ state, result, readings }: { state: AppState; result: FitR
 
   const { fit } = result;
   const fold = fit.fold;
-  const pairs = fold !== null ? state.distances.filter((d) => d < fold) : [];
+  const pairs = fold !== null
+    ? state.distances.filter((d) => d < fold).flatMap((d) => {
+      const twin = twinDistance(fit, d);
+      return twin === null ? [] : [{ d, twin }];
+    })
+    : [];
   const misses = offCurve(fit, readings, OFF_CURVE_LIMIT);
 
   return (
@@ -91,10 +137,11 @@ export function Fit({ state, result, readings }: { state: AppState; result: FitR
       step={3}
       title="Your crawl curve"
       intro={fold !== null
-        ? 'Your crawl peaks at the fold, then shrinks again up close.'
-        : 'Your readings don’t show the turn-back yet, so near distances can’t be placed.'}
+        ? `${INTRO} Yours peaks at the fold, about ${fold.toFixed(0)} m, then shrinks again up close.`
+        : INTRO}
       footer={<NextLink to="sheet">Build marker sheet</NextLink>}
     >
+      {picker}
       <div className="stats">
         <div className="stat"><div className="stat-label">Fit error</div><div className="stat-value">{fit.rms.toFixed(1)}</div></div>
         <div className="stat"><div className="stat-label">Fold</div><div className="stat-value">{fold !== null ? fold.toFixed(0) : '—'}<span> m</span></div></div>
@@ -122,16 +169,16 @@ export function Fit({ state, result, readings }: { state: AppState; result: FitR
           {' '}Check for typos, or reshoot {misses.length === 1 ? 'it' : 'them'}.
         </Tip>
       )}
-      {fold === null && <Tip tone="warn">No turn-back found yet. Add readings at a few shorter distances and fit again.</Tip>}
+      {fold === null && fit.kind === 'fold' && <Tip tone="warn">No turn-back found yet. Add readings at a few shorter distances and fit again.</Tip>}
 
       {pairs.length > 0 && (
         <div className="pairs">
           <h2 className="group-title">Same crawl, two distances</h2>
           <div className="pair-list">
-            {pairs.map((d) => (
+            {pairs.map(({ d, twin }) => (
               <div key={d} className="pair">
                 <span className="near">{d} m</span><span className="muted">=</span>
-                <span className="far">{fmtMetres(Math.round(twinDistance(fit, d) * 2) / 2)}</span>
+                <span className="far">{fmtMetres(Math.round(twin * 2) / 2)}</span>
               </div>
             ))}
           </div>

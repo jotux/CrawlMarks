@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Reading } from './model/fit';
+import { CurveModel, DEFAULT_CURVE_MODEL, isCurveModel, type Reading } from './model/fit';
 import { DEFAULT_TICK_STYLE, TickStyle, isTickStyle } from './model/tickStyles';
 
 export type Hand = 'right' | 'left';
@@ -23,6 +23,7 @@ export interface AppState {
   tickStyle: TickStyle;
   /** mm width of the final tab template; null follows the face width from setup */
   templateWidth: number | null;
+  curveModel: CurveModel;
 }
 
 export const MINOR_RANGE = { min: 1, max: 10 };
@@ -39,6 +40,7 @@ export const defaultState: AppState = {
   minorMarks: 4,
   tickStyle: DEFAULT_TICK_STYLE,
   templateWidth: null,
+  curveModel: DEFAULT_CURVE_MODEL,
 };
 
 const STORAGE_KEY = 'crawlmarks:v3';
@@ -56,6 +58,7 @@ function merge(saved: Partial<AppState>): AppState {
     tab: { ...defaultState.tab, ...saved.tab },
     readings: { ...saved.readings },
     tickStyle: isTickStyle(saved.tickStyle) ? saved.tickStyle : DEFAULT_TICK_STYLE,
+    curveModel: isCurveModel(saved.curveModel) ? saved.curveModel : DEFAULT_CURVE_MODEL,
   };
 }
 

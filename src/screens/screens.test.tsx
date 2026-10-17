@@ -10,18 +10,19 @@ import { Strip } from './Strip';
 
 const sample: AppState = {
   ...defaultState,
+  curveModel: 'fold',
   readings: { 5: '26.5', 10: '41.5', 18: '39.5', 25: '32.5', 30: '26.5', 40: '13.5', 50: '0' },
 };
 const noop = () => {};
 
 function render(state: AppState) {
   const readings = validReadings(state);
-  const result = fitCrawl(readings);
+  const result = fitCrawl(readings, state.curveModel);
   return {
     setup: renderToStaticMarkup(<Setup state={state} setState={noop} />),
     strip: renderToStaticMarkup(<Strip state={state} />),
     readings: renderToStaticMarkup(<Readings state={state} setState={noop} />),
-    fit: renderToStaticMarkup(<Fit state={state} result={result} readings={readings} />),
+    fit: renderToStaticMarkup(<Fit state={state} setState={noop} result={result} readings={readings} />),
     sheet: renderToStaticMarkup(<Sheet state={state} setState={noop} result={result} readings={readings} />),
   };
 }
@@ -35,6 +36,16 @@ describe('screens', () => {
     expect(html.fit).toContain('Same crawl, two distances');
     expect(html.sheet).toContain('L1');
     expect(html.sheet).toContain('FOLD');
+  });
+
+  it('show the curve picker, on every curve', () => {
+    for (const curveModel of ['auto', 'linear', 'quadratic', 'fold', 'manual'] as const) {
+      const html = render({ ...sample, curveModel });
+      expect(html.fit).toContain('id="curve-model"');
+      expect(html.sheet).toContain('L1');
+    }
+    expect(render({ ...sample, curveModel: 'quadratic' }).fit).toContain('a − c·d − e·d²');
+    expect(render({ ...sample, curveModel: 'auto' }).fit).toContain('Using <strong>');
   });
 
   it('draw the tab template at its own width, kept in range', () => {

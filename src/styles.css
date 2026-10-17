@@ -170,6 +170,15 @@ h1, h2, p { margin: 0; }
 .field-box.compact input { font-size: 17px; }
 .field-box.invalid { border-color: var(--near); }
 .field-error { font-size: 11px; color: var(--near); margin-top: 2px; }
+.select-box { position: relative; padding: 0; }
+.select-box select {
+  appearance: none; -webkit-appearance: none; width: 100%; height: 100%; padding: 0 36px 0 12px;
+  border: none; outline: none; background: transparent; color: var(--ink); font: 600 16px var(--sans); cursor: pointer;
+}
+/* the open list is drawn by the browser: give it the theme's colours, not the transparent box's */
+.select-box select, .select-box option { background-color: var(--surface); color: var(--ink); }
+.select-box svg { position: absolute; right: 12px; pointer-events: none; color: var(--muted); }
+.curve-about { line-height: 1.4; }
 
 .segmented { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .segmented button { height: 44px; border-radius: 10px; border: 2px solid var(--field-line); background: var(--surface); font-weight: 500; font-size: 15px; }
