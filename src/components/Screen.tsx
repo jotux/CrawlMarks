@@ -3,6 +3,9 @@ import { STEPS } from '../steps';
 // bump package.json "version" with each fix or feature; only this field is bundled
 import { version } from '../../package.json';
 
+// phones and tablets are driven by a finger; desktops (touchscreen laptops included) by a mouse or trackpad
+const platform = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches ? 'Mobile' : 'Desktop';
+
 function Wordmark() {
   const ticks = Array.from({ length: 21 }, (_, i) => i * 5);
   return (
@@ -54,7 +57,7 @@ export function Screen({ step, title, intro, children, footer }: ScreenProps) {
         )}
         {footer && <div className="footer-main">{footer}</div>}
       </footer>
-      <div className="version">Mobile-v{version}</div>
+      <div className="version">{platform}-v{version}</div>
     </div>
   );
 }
