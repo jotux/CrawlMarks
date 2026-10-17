@@ -3,7 +3,7 @@ import { CrawlFit, FitResult, Miss, Reading, crawlAt, offCurve, twinDistance } f
 import { AppState, SCALE_MAX, fmtMetres } from '../state';
 
 const ACCENT = '#E0A100';
-const MISS = '#B42318';
+const MISS = 'var(--miss)';
 /** A reading this far off the curve, in strip units, is worth a second look. */
 const OFF_CURVE_LIMIT = SCALE_MAX * 0.03;
 
@@ -35,28 +35,28 @@ function CrawlChart({ fit, readings, misses }: { fit: CrawlFit; readings: Readin
       aria-label={`Crawl against distance${fit.fold !== null ? `, peaking near ${fit.fold.toFixed(0)} m` : ''}.`}>
       {yTicks.map((v) => (
         <g key={v}>
-          <line x1={L} x2={R} y1={Y(v)} y2={Y(v)} stroke={v === 0 ? '#8A948E' : v % 5 === 0 ? '#DDE2DD' : '#F2F4F1'} />
+          <line x1={L} x2={R} y1={Y(v)} y2={Y(v)} style={{ stroke: v === 0 ? 'var(--axis)' : v % 5 === 0 ? 'var(--grid)' : 'var(--grid-minor)' }} />
           {v % 5 === 0 && <text x={L - 6} y={Y(v)} className="chart-label" textAnchor="end" dominantBaseline="central">{v}</text>}
         </g>
       ))}
       {xTicks.map((v) => <text key={v} x={X(v)} y={B + 14} className="chart-label" textAnchor="middle">{v}</text>)}
       {fit.fold !== null ? (
         <>
-          <line x1={X(fit.fold)} x2={X(fit.fold)} y1={T} y2={B} stroke="#4A5650" strokeDasharray="3 4" />
+          <line x1={X(fit.fold)} x2={X(fit.fold)} y1={T} y2={B} style={{ stroke: 'var(--muted)' }} strokeDasharray="3 4" />
           <text x={X(fit.fold) + 5} y={T + 4} className="chart-label caps">Fold</text>
-          <path d={path(fit.fold, end)} fill="none" stroke="#0F5C5A" strokeWidth="2.5" />
-          <path d={path(start, fit.fold)} fill="none" stroke="#C2410C" strokeWidth="2.5" strokeDasharray="6 4" />
+          <path d={path(fit.fold, end)} fill="none" style={{ stroke: 'var(--teal)' }} strokeWidth="2.5" />
+          <path d={path(start, fit.fold)} fill="none" style={{ stroke: 'var(--near-branch)' }} strokeWidth="2.5" strokeDasharray="6 4" />
         </>
       ) : (
-        <path d={path(start, end)} fill="none" stroke="#0F5C5A" strokeWidth="2.5" />
+        <path d={path(start, end)} fill="none" style={{ stroke: 'var(--teal)' }} strokeWidth="2.5" />
       )}
       {misses.map((m) => {
         const x = X(m.distance);
         const right = x < R - 40;
         return (
           <g key={`miss-${m.distance}`}>
-            <line x1={x} x2={x} y1={Y(m.crawl)} y2={Y(crawlAt(fit, m.distance))} stroke={MISS} strokeOpacity="0.45" strokeWidth="1" />
-            <circle cx={x} cy={Y(m.crawl)} r="8.5" fill="none" stroke={MISS} strokeOpacity="0.6" strokeWidth="1.25" />
+            <line x1={x} x2={x} y1={Y(m.crawl)} y2={Y(crawlAt(fit, m.distance))} style={{ stroke: MISS }} strokeOpacity="0.45" strokeWidth="1" />
+            <circle cx={x} cy={Y(m.crawl)} r="8.5" fill="none" style={{ stroke: MISS }} strokeOpacity="0.6" strokeWidth="1.25" />
             <text x={right ? x + 12 : x - 12} y={Y(m.crawl)} className="chart-label miss-label" textAnchor={right ? 'start' : 'end'} dominantBaseline="central">
               {fmtOff(m.off)}
             </text>
@@ -64,9 +64,9 @@ function CrawlChart({ fit, readings, misses }: { fit: CrawlFit; readings: Readin
         );
       })}
       {readings.map((r) => isNear(r.distance) ? (
-        <rect key={r.distance} x={X(r.distance) - 5} y={Y(r.crawl) - 5} width="10" height="10" rx="2" fill="#F2A27A" stroke="#17201B" strokeWidth="2" />
+        <rect key={r.distance} x={X(r.distance) - 5} y={Y(r.crawl) - 5} width="10" height="10" rx="2" fill="#F2A27A" style={{ stroke: 'var(--ink)' }} strokeWidth="2" />
       ) : (
-        <circle key={r.distance} cx={X(r.distance)} cy={Y(r.crawl)} r="5" fill={ACCENT} stroke="#17201B" strokeWidth="2" />
+        <circle key={r.distance} cx={X(r.distance)} cy={Y(r.crawl)} r="5" fill={ACCENT} style={{ stroke: 'var(--ink)' }} strokeWidth="2" />
       ))}
     </svg>
   );
@@ -105,11 +105,11 @@ export function Fit({ state, result, readings }: { state: AppState; result: FitR
         <CrawlChart fit={fit} readings={readings} misses={misses} />
         <figcaption>
           {fold !== null && (
-            <span><svg width="20" height="6" aria-hidden="true"><line x1="0" y1="3" x2="20" y2="3" stroke="#C2410C" strokeWidth="2.5" strokeDasharray="6 4" /></svg>Near branch</span>
+            <span><svg width="20" height="6" aria-hidden="true"><line x1="0" y1="3" x2="20" y2="3" style={{ stroke: 'var(--near-branch)' }} strokeWidth="2.5" strokeDasharray="6 4" /></svg>Near branch</span>
           )}
-          <span><svg width="20" height="6" aria-hidden="true"><line x1="0" y1="3" x2="20" y2="3" stroke="#0F5C5A" strokeWidth="2.5" /></svg>Far branch</span>
+          <span><svg width="20" height="6" aria-hidden="true"><line x1="0" y1="3" x2="20" y2="3" style={{ stroke: 'var(--teal)' }} strokeWidth="2.5" /></svg>Far branch</span>
           {misses.length > 0 && (
-            <span><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" stroke={MISS} strokeOpacity="0.6" strokeWidth="1.25" /></svg>Off the curve</span>
+            <span><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" style={{ stroke: MISS }} strokeOpacity="0.6" strokeWidth="1.25" /></svg>Off the curve</span>
           )}
           <span>Strip reading ↑ · distance m →</span>
         </figcaption>
