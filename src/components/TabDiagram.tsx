@@ -73,7 +73,7 @@ export function TabDiagram({ tab }: { tab: TabSpec }) {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="tab-diagram" role="img"
-      aria-label={`Tab face ${tab.faceLength} by ${tab.faceWidth} mm. Measure everything down from the top edge, under your index finger: the marking zone runs from ${tab.zoneStart} to ${tab.zoneEnd} mm.`}>
+      aria-label={`Tab face ${tab.faceLength} by ${tab.faceWidth} mm. Measure everything down from the top edge, under your nock: the marking zone runs from ${tab.zoneStart} to ${tab.zoneEnd} mm.`}>
       <defs>
         <linearGradient id={`${id}-leather`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#4A2A26" />
@@ -100,7 +100,7 @@ export function TabDiagram({ tab }: { tab: TabSpec }) {
       {/* top edge: where every measurement starts */}
       <line x1={faceX - 3} x2={faceX + w + 3} y1={TOP} y2={TOP} style={{ stroke: 'var(--accent)' }} strokeWidth="3.5" strokeLinecap="round" />
       <text x={faceX + w / 2} y={TOP - 24} className="diagram-label" textAnchor="middle" style={{ fill: 'var(--accent-ink)' }} fontWeight={600}>Top edge</text>
-      <text x={faceX + w / 2} y={TOP - 11} className="diagram-label small" textAnchor="middle" style={muted}>under your index finger</text>
+      <text x={faceX + w / 2} y={TOP - 11} className="diagram-label small" textAnchor="middle" style={muted}>Under your nock</text>
 
       {/* face length, down the outside */}
       <Dim x1={LEFT - 16} y1={TOP} x2={LEFT - 16} y2={bottom} />

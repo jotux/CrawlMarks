@@ -25,7 +25,7 @@ export function Setup({ state, setState }: { state: AppState; setState: Dispatch
       aside={
         <>
           <div className="card diagram-card only-wide"><TabDiagram tab={tab} /></div>
-          <Tip>Measure from the top edge of the tab face, where it sits under your index finger.</Tip>
+          <Tip>Measure from the top edge of the tab face, where it sits under your nock.</Tip>
         </>
       }
     >
