@@ -28,6 +28,11 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
           Fit my curve
         </NextLink>
       }
+      aside={
+        <Tip>
+          Include a few short distances as well as long ones. Up close your crawl turns back, and those readings show where.
+        </Tip>
+      }
     >
       <div className="card table">
         <div className="table-head"><span>Distance</span><span>Reading</span><span>Point-on</span></div>
@@ -71,10 +76,6 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
           </button>
         </form>
       </div>
-
-      <Tip>
-        Include a few short distances as well as long ones. Up close your crawl turns back, and those readings show where.
-      </Tip>
     </Screen>
   );
 }

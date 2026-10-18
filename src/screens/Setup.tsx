@@ -21,6 +21,7 @@ export function Setup({ state, setState }: { state: AppState; setState: Dispatch
       title="Describe your tab"
       intro="We'll print a measuring strip sized to fit the face of your tab."
       footer={<NextLink to="strip" blocked={problems[0]}>Make sight-in strip</NextLink>}
+      aside={<Tip>Measure from the top edge of the tab face, where it sits under your index finger.</Tip>}
     >
       <fieldset className="group">
         <legend>Shooting hand</legend>
@@ -50,8 +51,6 @@ export function Setup({ state, setState }: { state: AppState; setState: Dispatch
           ))}
         </div>
       </fieldset>
-
-      <Tip>Measure from the top edge of the tab face, where it sits under your index finger.</Tip>
     </Screen>
   );
 }

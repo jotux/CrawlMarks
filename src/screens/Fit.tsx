@@ -115,8 +115,7 @@ export function Fit({ state, setState, result, readings }: {
   );
   if (!result.ok) {
     return (
-      <Screen step={3} title="Your crawl curve" intro={INTRO}>
-        {picker}
+      <Screen step={3} title="Your crawl curve" intro={INTRO} asideFirst aside={picker}>
         <Tip tone="warn">{result.reason}</Tip>
       </Screen>
     );
@@ -140,13 +139,18 @@ export function Fit({ state, setState, result, readings }: {
         ? `${INTRO} Yours peaks at the fold, about ${fold.toFixed(0)} m, then shrinks again up close.`
         : INTRO}
       footer={<NextLink to="sheet">Build marker sheet</NextLink>}
+      asideFirst
+      aside={
+        <>
+          {picker}
+          <div className="stats">
+            <div className="stat"><div className="stat-label">Fit error</div><div className="stat-value">{fit.rms.toFixed(1)}</div></div>
+            <div className="stat"><div className="stat-label">Fold</div><div className="stat-value">{fold !== null ? fold.toFixed(0) : '—'}<span> m</span></div></div>
+            <div className="stat"><div className="stat-label">Point-on</div><div className="stat-value">{fit.pointOn !== null ? fit.pointOn.toFixed(0) : '—'}<span> m</span></div></div>
+          </div>
+        </>
+      }
     >
-      {picker}
-      <div className="stats">
-        <div className="stat"><div className="stat-label">Fit error</div><div className="stat-value">{fit.rms.toFixed(1)}</div></div>
-        <div className="stat"><div className="stat-label">Fold</div><div className="stat-value">{fold !== null ? fold.toFixed(0) : '—'}<span> m</span></div></div>
-        <div className="stat"><div className="stat-label">Point-on</div><div className="stat-value">{fit.pointOn !== null ? fit.pointOn.toFixed(0) : '—'}<span> m</span></div></div>
-      </div>
 
       <figure className="card chart-card">
         <CrawlChart fit={fit} readings={readings} misses={misses} />

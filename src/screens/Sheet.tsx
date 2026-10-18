@@ -10,7 +10,7 @@ import { AppState, MINOR_RANGE, SCALE_MAX, clampTemplateWidth, templateWidth, te
 function LegendLine({ style, long }: { style: TickStyle; long: boolean }) {
   return (
     <svg width="32" height="4" viewBox="0 0 32 4" aria-hidden="true">
-      {tickSegments(style, long, 1).map(([a, b]) => <line key={a} x1={a * 32} x2={b * 32} y1="2" y2="2" stroke="#17201B" strokeWidth="1.5" />)}
+      {tickSegments(style, long, 1).map(([a, b]) => <line key={a} x1={a * 32} x2={b * 32} y1="2" y2="2" style={{ stroke: 'var(--ink)' }} strokeWidth="1.5" />)}
     </svg>
   );
 }
@@ -91,20 +91,24 @@ export function Sheet({ state, setState, result, readings }: {
         title="Marker sheet"
         intro="Plain lines go on the tab. The key card is the same layout, numbered, and stays in your quiver."
         footer={<PrintButton label="Print or save as PDF" />}
+        asideFirst
+        aside={
+          <>
+            <Stepper label="Small marks between" note={`≈ ${step.toFixed(minor >= 4 ? 2 : 1)} m per mark`}
+              value={minor} min={MINOR_RANGE.min} max={MINOR_RANGE.max}
+              less="Fewer small marks" more="More small marks" onChange={setMinor} />
+
+            <Stepper label="Tab face width" note={`${widthRange.min}–${widthRange.max} mm · strip is ${state.tab.faceWidth} mm`}
+              value={width} unit="mm" min={widthRange.min} max={widthRange.max}
+              less="Narrower tab face" more="Wider tab face" onChange={setWidth} />
+
+            <div className="card stepper">
+              <div className="stepper-label">Tick style</div>
+              <TickStylePicker value={tickStyle} onChange={(s) => setState((st) => ({ ...st, tickStyle: s }))} />
+            </div>
+          </>
+        }
       >
-        <Stepper label="Small marks between" note={`≈ ${step.toFixed(minor >= 4 ? 2 : 1)} m per mark`}
-          value={minor} min={MINOR_RANGE.min} max={MINOR_RANGE.max}
-          less="Fewer small marks" more="More small marks" onChange={setMinor} />
-
-        <Stepper label="Tab face width" note={`${widthRange.min}–${widthRange.max} mm · strip is ${state.tab.faceWidth} mm`}
-          value={width} unit="mm" min={widthRange.min} max={widthRange.max}
-          less="Narrower tab face" more="Wider tab face" onChange={setWidth} />
-
-        <div className="card stepper">
-          <div className="stepper-label">Tick style</div>
-          <TickStylePicker value={tickStyle} onChange={(s) => setState((st) => ({ ...st, tickStyle: s }))} />
-        </div>
-
         {marks.length === 0 ? (
           <Tip tone="warn">None of the 5 m lines fall inside your marking zone. Check the zone on the first screen.</Tip>
         ) : (

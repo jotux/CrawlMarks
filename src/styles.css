@@ -110,7 +110,13 @@ h1, h2, p { margin: 0; }
 .progress { height: 4px; margin: 0 20px; background: var(--line); border-radius: 2px; }
 .progress div { height: 4px; background: var(--accent); border-radius: 2px; transition: width 200ms; }
 
+.screen-body { display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
 .main { padding: 20px; display: flex; flex-direction: column; gap: 16px; flex-grow: 1; }
+.main-content, .main-aside { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+/* on a phone the aside follows the content, or leads it with .first */
+.main-aside.first { order: -1; }
+.main-head { order: -2; }
+.sidebar, .aside-actions { display: none; }
 .main h1 { font: 700 34px/1.05 var(--display); }
 .intro { margin-top: 6px; font-size: 14px; line-height: 1.45; color: var(--muted); }
 
@@ -138,7 +144,7 @@ h1, h2, p { margin: 0; }
   height: 48px; border-radius: 12px; border: 2px solid var(--ink); background: var(--surface);
   font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-.footer .btn-outline { height: 54px; background: var(--accent); border-color: var(--accent); color: var(--on-accent); font: 700 18px var(--display); letter-spacing: 0.05em; text-transform: uppercase; }
+.footer .btn-outline, .aside-actions .btn-outline { height: 54px; background: var(--accent); border-color: var(--accent); color: var(--on-accent); font: 700 18px var(--display); letter-spacing: 0.05em; text-transform: uppercase; }
 .btn-text { border: none; background: none; color: var(--teal); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px; }
 
 .version {
@@ -153,6 +159,56 @@ h1, h2, p { margin: 0; }
   color: var(--muted);
   font: 400 11px/1.3 system-ui, 'Segoe UI', sans-serif;
   pointer-events: none;
+}
+
+/* ---------- desktop: sidebar of steps, content beside its controls ---------- */
+
+@media (min-width: 900px) {
+  .screen.desktop { max-width: none; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+  .desktop .topbar, .desktop .progress { display: none; }
+
+  .desktop .sidebar {
+    position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column; gap: 32px;
+    padding: 32px 20px; background: var(--surface); border-right: 1px solid var(--line);
+  }
+  .desktop .sidebar .wordmark { align-self: flex-start; padding: 0 12px; }
+  .desktop .sidebar .wordmark-text { font-size: 28px; }
+  .step-nav { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .step-nav a {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px;
+    color: var(--ink-2); text-decoration: none; font-weight: 500; font-size: 15px;
+  }
+  .step-nav a:hover { background: var(--surface-sunk); color: var(--ink); }
+  .step-nav a[aria-current='step'] { background: var(--teal-wash); color: var(--teal-deep); font-weight: 600; }
+  .step-num {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    border: 2px solid var(--field-line); font: 600 13px var(--mono); color: var(--muted);
+  }
+  .step-nav a[aria-current='step'] .step-num { border-color: var(--teal); background: var(--teal); color: var(--on-teal); }
+  .step-nav a.done .step-num { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+
+  .desktop .screen-body { width: 100%; max-width: 1160px; margin: 0 auto; padding: 0 48px; }
+  .desktop .main { padding: 40px 0 24px; gap: 24px; }
+  .desktop .main h1 { font-size: 46px; }
+  .desktop .intro { font-size: 15px; max-width: 70ch; }
+  .desktop .main:not(.has-aside) .main-content { max-width: 760px; }
+  .desktop .main.has-aside {
+    display: grid; grid-template-columns: minmax(0, 1fr) 340px; column-gap: 32px; row-gap: 24px;
+    grid-template-areas: 'head head' 'content aside'; align-items: start; align-content: start;
+  }
+  .desktop .main-head { grid-area: head; }
+  .desktop .main-content { grid-area: content; }
+  .desktop .main-aside { grid-area: aside; position: sticky; top: 24px; }
+
+  /* Back/Next live at the foot of the sticky side panel, beside the controls they follow */
+  .desktop .footer { display: none; }
+  .desktop .main { padding-bottom: 48px; }
+  .desktop .aside-actions { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; }
+  .desktop .aside-actions .cta, .desktop .aside-actions .btn-outline { width: 100%; }
+  .desktop .aside-back { align-self: center; color: var(--muted); }
+  .desktop .aside-back:hover { color: var(--ink); }
+  .desktop .cta { transition: filter 120ms; }
+  .desktop .version { right: auto; left: 12px; bottom: 10px; background: var(--surface); }
 }
 
 /* ---------- form controls ---------- */
