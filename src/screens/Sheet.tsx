@@ -41,22 +41,58 @@ function Stepper({ label, note, value, unit, min, max, less, more, onChange }: {
 /** On-screen scale for the template preview, fixed so a width change reads as width, not length. */
 const PREVIEW_PX_PER_MM = 2.6;
 
-const RULES = [
-  'Two line lengths only, same thickness and colour',
-  'No numbers or writing on the tab face',
-  'Key card kept separate from the tab',
+/** Where the rules come from: World Archery Book 3, Target Archery, version 2026-01-27. */
+const RULE_BOOK = 'World Archery Book 3, version 2026-01-27';
+
+interface Rule {
+  text: string;
+  /** article in the rule book */
+  cite: string;
+  /** the rule's own words */
+  quote: string;
+  /** official interpretations that clarify it */
+  also?: { cite: string; quote: string }[];
+}
+
+const RULES: Rule[] = [
+  {
+    text: 'Two line lengths only, same thickness and colour',
+    cite: 'Art. 9.3.7 Finger Protection',
+    quote: 'These marks must be uniform in size, shape and colour and may have up to two different lengths.',
+    also: [
+      { cite: 'Interpretation, 11 Aug 2020, Barebow tab 3', quote: 'No more than two lengths of line are permitted.' },
+      { cite: 'Interpretation, 11 Aug 2020, Barebow tab 1', quote: 'There is nothing in the current rule … that indicates the marks must have uniform spacing.' },
+    ],
+  },
+  {
+    text: 'No numbers or writing on the tab face',
+    cite: 'Art. 9.3.7 Finger Protection',
+    quote: 'Additional memoranda are not permitted.',
+  },
+  {
+    text: 'Key card kept separate from the tab',
+    cite: 'Follows from Art. 9.3.7 Finger Protection',
+    quote: 'Additional memoranda are not permitted.',
+  },
 ];
 
-function Rules({ items = RULES }: { items?: string[] }) {
+function Rules({ items = RULES }: { items?: Rule[] }) {
   return (
     <div className="rules">
       <div className="rules-head">
         <h2 className="label-caps">World Archery barebow rules</h2>
+        <div className="rules-source">{RULE_BOOK}</div>
       </div>
-      {items.map((c) => (
-        <div key={c} className="rule">
+      {items.map((r) => (
+        <div key={r.text} className="rule">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>
-          <span>{c}</span>
+          <div>
+            <div>{r.text}</div>
+            <div className="rule-cite"><span className="mono">{r.cite}</span>: “{r.quote}”</div>
+            {r.also?.map((a) => (
+              <div key={a.quote} className="rule-cite"><span className="mono">{a.cite}</span>: “{a.quote}”</div>
+            ))}
+          </div>
         </div>
       ))}
     </div>

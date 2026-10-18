@@ -36,6 +36,9 @@ describe('screens', () => {
     expect(html.fit).toContain('Same crawl, two distances');
     expect(html.sheet).toContain('L1');
     expect(html.sheet).toContain('FOLD');
+    expect(html.sheet).toContain('Art. 9.3.7 Finger Protection');
+    expect(html.sheet).toContain('Additional memoranda are not permitted.');
+    expect(html.sheet).toContain('Interpretation, 11 Aug 2020, Barebow tab 3');
   });
 
   it('show the curve picker, on every curve', () => {

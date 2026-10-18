@@ -347,7 +347,10 @@ figcaption span { display: flex; align-items: center; gap: 5px; }
 .keycard-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .rules { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--teal-wash); }
 .rules-head h2 { color: var(--teal-deep); }
-.rule { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.35; color: var(--ink-2); }
+.rules-source { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.rule-cite { margin-top: 2px; font-size: 11px; line-height: 1.4; color: var(--muted); }
+.rule-cite .mono { font-weight: 600; color: var(--teal-deep); }
+.rule { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.35; color: var(--ink-2); padding: 2px 0; }
 .rule svg { flex-shrink: 0; margin-top: 1px; color: var(--teal); }
 
 /* ---------- print: real-size output only ---------- */
