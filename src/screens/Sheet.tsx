@@ -99,22 +99,26 @@ function Rules({ items = RULES }: { items?: Rule[] }) {
   );
 }
 
-/** Width and tick style of the final tab template, shared by both kinds of sheet. */
-function TemplateControls({ state, setState }: { state: AppState; setState: Dispatch<SetStateAction<AppState>> }) {
-  const width = templateWidth(state);
+type Controls = { state: AppState; setState: Dispatch<SetStateAction<AppState>> };
+
+/** Tick style of the tab lines, shared by both kinds of sheet; always the first control. */
+function TickStyleControl({ state, setState }: Controls) {
+  return (
+    <div className="card stepper">
+      <div className="stepper-label">Tick style</div>
+      <TickStylePicker value={state.tickStyle} onChange={(s) => setState((st) => ({ ...st, tickStyle: s }))} />
+    </div>
+  );
+}
+
+/** Width of the final tab template, shared by both kinds of sheet. */
+function WidthControl({ state, setState }: Controls) {
   const widthRange = templateWidthRange(state.tab);
   const setWidth = (n: number) => setState((s) => ({ ...s, templateWidth: clampTemplateWidth(s.tab, n) }));
   return (
-    <>
-      <Stepper label="Tab face width" note={`${widthRange.min}–${widthRange.max} mm · strip is ${state.tab.faceWidth} mm`}
-        value={width} unit="mm" min={widthRange.min} max={widthRange.max}
-        less="Narrower tab face" more="Wider tab face" onChange={setWidth} />
-
-      <div className="card stepper">
-        <div className="stepper-label">Tick style</div>
-        <TickStylePicker value={state.tickStyle} onChange={(s) => setState((st) => ({ ...st, tickStyle: s }))} />
-      </div>
-    </>
+    <Stepper label="Tab face width" note={`${widthRange.min}–${widthRange.max} mm · strip is ${state.tab.faceWidth} mm`}
+      value={templateWidth(state)} unit="mm" min={widthRange.min} max={widthRange.max}
+      less="Narrower tab face" more="Wider tab face" onChange={setWidth} />
   );
 }
 
@@ -137,7 +141,12 @@ function SingleSheet({ state, setState, reading }: {
         footer={<PrintButton label="Print or save as PDF" />}
         back="readings"
         asideFirst
-        aside={<TemplateControls state={state} setState={setState} />}
+        aside={
+          <>
+            <TickStyleControl state={state} setState={setState} />
+            <WidthControl state={state} setState={setState} />
+          </>
+        }
       >
         <section className="card template-card">
           <div className="template-preview" style={{ width: width * PREVIEW_PX_PER_MM, maxWidth: '50%' }}><TabTemplate tab={tab} marks={marks} style={state.tickStyle} /></div>
@@ -215,11 +224,13 @@ export function Sheet({ state, setState, result, readings }: {
         asideFirst
         aside={
           <>
+            <TickStyleControl state={state} setState={setState} />
+
             <Stepper label="Small marks between" note={`≈ ${step.toFixed(minor >= 4 ? 2 : 1)} m per mark`}
               value={minor} min={MINOR_RANGE.min} max={MINOR_RANGE.max}
               less="Fewer small marks" more="More small marks" onChange={setMinor} />
 
-            <TemplateControls state={state} setState={setState} />
+            <WidthControl state={state} setState={setState} />
           </>
         }
       >
