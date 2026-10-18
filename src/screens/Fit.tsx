@@ -3,7 +3,8 @@ import { NextLink, Screen, Tip } from '../components/Screen';
 import { CURVE_MODELS, CrawlFit, CurveKind, CurveModel, FitResult, Miss, Reading, crawlAt, isCurveModel, offCurve, twinDistance } from '../model/fit';
 import { AppState, SCALE_MAX, fmtMetres } from '../state';
 
-const INTRO = 'Pick how to draw a line through your readings. Your tab marks are placed along it.';
+const INTRO = 'Pick how to draw a line through your readings. Your tab marks are placed along it. '
+  + 'Use it to double-check your readings are consistent: any that sit well off the line are circled and worth reshooting.';
 
 const CURVES: Record<CurveModel, { name: string; formula?: string; about: string }> = {
   auto: { name: 'Auto', about: 'Picks the curve that best predicts each reading from the others.' },
@@ -135,9 +136,7 @@ export function Fit({ state, setState, result, readings }: {
     <Screen
       step={3}
       title="Your crawl curve"
-      intro={fold !== null
-        ? `${INTRO} Yours peaks at the fold, about ${fold.toFixed(0)} m, then shrinks again up close.`
-        : INTRO}
+      intro={INTRO}
       footer={<NextLink to="sheet">Build marker sheet</NextLink>}
       asideFirst
       aside={
