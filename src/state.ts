@@ -128,6 +128,18 @@ export function setupProblems(state: AppState): string[] {
   return out;
 }
 
+/**
+ * Sets the reading at distance d. A reading of 0 is the point-on distance, and there is
+ * only one, so setting it clears 0 from every other distance.
+ */
+export function withReading(state: AppState, d: number, text: string): AppState {
+  const readings: Record<string, string> = { ...state.readings, [d]: text };
+  if (parseNum(text) === 0) {
+    for (const [other, t] of Object.entries(readings)) if (Number(other) !== d && parseNum(t) === 0) readings[other] = '';
+  }
+  return { ...state, readings };
+}
+
 export interface ReadingRow {
   distance: number;
   text: string;

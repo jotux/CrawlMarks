@@ -1,14 +1,13 @@
 import { Dispatch, FormEvent, SetStateAction, useState } from 'react';
 import { NextLink, Screen, Tip } from '../components/Screen';
-import { AppState, SCALE_MAX, parseNum, readingRows, validReadings } from '../state';
+import { AppState, SCALE_MAX, parseNum, readingRows, validReadings, withReading } from '../state';
 
 export function Readings({ state, setState }: { state: AppState; setState: Dispatch<SetStateAction<AppState>> }) {
   const [adding, setAdding] = useState('');
   const rows = readingRows(state);
   const valid = validReadings(state);
 
-  const setReading = (d: number, text: string) =>
-    setState((s) => ({ ...s, readings: { ...s.readings, [d]: text } }));
+  const setReading = (d: number, text: string) => setState((s) => withReading(s, d, text));
 
   const addDistance = (e: FormEvent) => {
     e.preventDefault();

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { fitCrawl } from '../model/fit';
-import { AppState, defaultState, validReadings } from '../state';
+import { AppState, defaultState, validReadings, withReading } from '../state';
 import { Fit } from './Fit';
 import { Readings } from './Readings';
 import { Setup } from './Setup';
@@ -53,6 +53,15 @@ describe('screens', () => {
     expect(render({ ...sample, templateWidth: 25 }).sheet).toContain('25 × 72 mm');
     expect(render({ ...sample, templateWidth: 200 }).sheet).toContain('58 × 72 mm');
     expect(render({ ...sample, templateWidth: 4 }).sheet).toContain('10 × 72 mm');
+  });
+
+  it('allow only one point-on distance', () => {
+    const moved = withReading(sample, 40, '0');
+    expect(moved.readings[40]).toBe('0');
+    expect(moved.readings[50]).toBe('');
+    expect(moved.readings[30]).toBe('26.5');
+    expect(withReading(sample, 40, '13').readings[50]).toBe('0');
+    expect(Object.values(withReading(sample, 18, '0.0').readings).filter((t) => Number(t) === 0 && t !== '')).toHaveLength(1);
   });
 
   it('explain what is missing before there are readings', () => {
