@@ -64,6 +64,16 @@ describe('screens', () => {
     expect(Object.values(withReading(sample, 18, '0.0').readings).filter((t) => Number(t) === 0 && t !== '')).toHaveLength(1);
   });
 
+  it('offer a single-distance tab when there is only one reading', () => {
+    const one = render({ ...sample, readings: { 18: '39.5' } });
+    expect(one.readings).toContain('Build tab for single distance');
+    expect(one.sheet).toContain('Single-distance tab');
+    expect(one.sheet).toContain('18 m · strip reading 39.5');
+    expect(one.sheet).not.toContain('Key card');
+    expect(render(sample).readings).not.toContain('Build tab for single distance');
+    expect(render({ ...sample, readings: { 18: '39.5', 25: '32' } }).readings).not.toContain('Build tab for single distance');
+  });
+
   it('explain what is missing before there are readings', () => {
     const html = render(defaultState);
     expect(html.readings).toContain('Enter readings for at least three distances.');

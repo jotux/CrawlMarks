@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { STEPS } from '../steps';
+import { STEPS, StepId } from '../steps';
 // bump package.json "version" with each fix or feature; only this field is bundled
 import { version } from '../../package.json';
 
@@ -60,10 +60,12 @@ interface ScreenProps {
   /** Controls shown beside the content on desktop; on mobile, after it (or before it with asideFirst). */
   aside?: ReactNode;
   asideFirst?: boolean;
+  /** step Back goes to, when it isn't the one before (a skipped step) */
+  back?: StepId;
 }
 
-export function Screen({ step, title, intro, children, footer, aside, asideFirst }: ScreenProps) {
-  const prev = STEPS[step - 1];
+export function Screen({ step, title, intro, children, footer, aside, asideFirst, back }: ScreenProps) {
+  const prev = back ? STEPS.find((s) => s.id === back) : STEPS[step - 1];
   const desktop = platform === 'Desktop';
   // desktop keeps Back/Next in the side panel, so every step gets one; narrow windows fall back to the footer
   const side = desktop || aside;

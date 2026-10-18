@@ -23,9 +23,16 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
       title="Enter your readings"
       intro={`At each distance, the strip number (0–${SCALE_MAX}) level with your nock. Halfway between ticks is fine.`}
       footer={
-        <NextLink to="fit" blocked={valid.length < 3 ? 'Enter readings for at least three distances.' : null}>
-          Fit my curve
-        </NextLink>
+        <>
+          <NextLink to="fit" blocked={valid.length < 3
+            ? `Enter readings for at least three distances${valid.length === 1 ? ', or make a tab for just this one' : ''}.`
+            : null}>
+            Fit my curve
+          </NextLink>
+          {valid.length === 1 && (
+            <a className="btn-secondary" href="#/sheet">Build tab for single distance</a>
+          )}
+        </>
       }
       aside={
         <Tip>

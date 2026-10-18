@@ -122,7 +122,7 @@ h1, h2, p { margin: 0; }
 .main h1 { font: 700 34px/1.05 var(--display); }
 .intro { margin-top: 6px; font-size: 14px; line-height: 1.45; color: var(--muted); }
 
-.footer { padding: 12px 20px 28px; display: flex; align-items: flex-end; gap: 10px; position: sticky; bottom: 0; background: linear-gradient(transparent, var(--ground) 30%); }
+.footer { padding: 12px 20px 28px; display: flex; align-items: flex-end; gap: 10px; position: sticky; bottom: 0; background: linear-gradient(transparent, var(--ground) 12px); }
 .cta {
   display: flex; align-items: center; justify-content: center;
   height: 54px; border-radius: 12px; border: none;
@@ -147,6 +147,12 @@ h1, h2, p { margin: 0; }
   font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 .footer .btn-outline, .aside-actions .btn-outline { height: 54px; background: var(--accent); border-color: var(--accent); color: var(--on-accent); font: 700 18px var(--display); letter-spacing: 0.05em; text-transform: uppercase; }
+.btn-secondary {
+  display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 12px;
+  border: 2px solid var(--accent); background: transparent; color: var(--ink); text-decoration: none;
+  font: 700 16px var(--display); letter-spacing: 0.05em; text-transform: uppercase;
+}
+.btn-secondary:hover { background: var(--surface); color: var(--ink); }
 .btn-text { border: none; background: none; color: var(--teal); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px; }
 
 .version {
