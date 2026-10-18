@@ -117,6 +117,8 @@ h1, h2, p { margin: 0; }
 .main-aside.first { order: -1; }
 .main-head { order: -2; }
 .sidebar, .aside-actions { display: none; }
+/* .only-wide shows in the desktop side panel; .only-narrow everywhere else */
+.only-wide { display: none; }
 .main h1 { font: 700 34px/1.05 var(--display); }
 .intro { margin-top: 6px; font-size: 14px; line-height: 1.45; color: var(--muted); }
 
@@ -208,6 +210,8 @@ h1, h2, p { margin: 0; }
   .desktop .aside-back { align-self: center; color: var(--muted); }
   .desktop .aside-back:hover { color: var(--ink); }
   .desktop .cta { transition: filter 120ms; }
+  .desktop .only-wide { display: block; }
+  .desktop .only-narrow { display: none; }
   .desktop .version { right: auto; left: 12px; bottom: 10px; background: var(--surface); }
 }
 
@@ -245,6 +249,14 @@ h1, h2, p { margin: 0; }
 .chip[aria-pressed='true'] { border-color: var(--teal); background: var(--teal); color: var(--on-teal); }
 
 /* ---------- strip ---------- */
+
+/* ---------- tab measuring diagram ---------- */
+
+.diagram-card { padding: 12px 8px 4px; }
+.tab-diagram { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto; }
+.diagram-label { font: 500 11px var(--sans); }
+.diagram-label.small { font-size: 10px; }
+.diagram-label .mono { font-family: var(--mono); font-weight: 600; }
 
 .strip-card { display: flex; gap: 16px; padding: 16px; }
 .strip-preview { width: 120px; flex-shrink: 0; }

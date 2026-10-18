@@ -50,7 +50,7 @@ function size(w: number, h: number, trueSize?: boolean) {
 }
 
 /** Tab face outline: gentle corners at the top, rounder at the bottom. */
-function facePath(w: number, h: number) {
+export function facePath(w: number, h: number) {
   const r1 = Math.min(w, h) * 0.1;
   const r2 = Math.min(w * 0.4, h * 0.3);
   return `M ${r1},0 H ${w - r1} A ${r1} ${r1} 0 0 1 ${w},${r1} V ${h - r2} A ${r2} ${r2} 0 0 1 ${w - r2},${h} `
