@@ -4,6 +4,7 @@
 import type { TabSpec } from '../state';
 import { SCALE_MAX, fmtMetres, unitsToMm, zoneLength } from '../state';
 import type { Mark, NearLabel } from '../model/marks';
+import { spreadLabels } from '../model/labels';
 import { stripTicks, tickStep } from '../model/strip';
 import { TickStyle, tickSegments } from '../model/tickStyles';
 
@@ -148,6 +149,13 @@ const TAB_X = 15.5;
 const TAB_W = 15.5;
 const FAR_X = TAB_X + TAB_W + 1.3;
 const LABEL_SPACING = 2.6;
+/** Centre-to-centre room for the long-line labels: a 2.6 mm pill plus a sliver of space. */
+const LONG_LABEL_SPACING = 3;
+/** Highest and lowest a long-line label's centre may sit: below the header, above the footer note. */
+const LABEL_TOP = CARD_M + 6.5;
+const LABEL_BOTTOM = CARD.h - 5.5;
+/** Extra room left of the labels for leader lines when a label has to move off its line. */
+const LEADER_ROOM = 2;
 
 /** Vertical scale of the key card relative to the real tab, chosen so the marking zone fills the card. */
 export const keyCardScale = (tab: TabSpec) => Math.min(3, (PLOT_BOTTOM - PLOT_TOP) / zoneLength(tab));
@@ -169,16 +177,22 @@ export function KeyCard({ tab, marks, style, near, foldCrawl, foldDistance, true
   const scale = keyCardScale(tab);
   const y = (crawl: number) => PLOT_TOP + (crawl / SCALE_MAX) * zoneLength(tab) * scale;
 
-  // label every long line; short lines only where there is room
-  const farPlaced: number[] = [];
-  const farLabels: { m: Mark; y: number }[] = [];
-  for (const m of [...marks.filter((x) => x.long), ...marks.filter((x) => !x.long)]) {
+  // label every long line, spread apart where the lines bunch up (near the fold);
+  // short lines get a label only where there is still room beside their own line
+  const longMarks = marks.filter((x) => x.long);
+  const longYs = spreadLabels(longMarks.map((m) => y(m.crawl)), LONG_LABEL_SPACING, LABEL_TOP, LABEL_BOTTOM);
+  const farLabels: { m: Mark; y: number; lineY: number }[] = longMarks.map((m, i) => ({ m, y: longYs[i], lineY: y(m.crawl) }));
+  const farPlaced = [...longYs];
+  for (const m of marks.filter((x) => !x.long)) {
     const yy = y(m.crawl);
-    if (m.long || farPlaced.every((q) => Math.abs(q - yy) >= LABEL_SPACING)) {
+    if (farPlaced.every((q) => Math.abs(q - yy) >= LABEL_SPACING)) {
       farPlaced.push(yy);
-      farLabels.push({ m, y: yy });
+      farLabels.push({ m, y: yy, lineY: yy });
     }
   }
+  const moved = farLabels.some((l) => Math.abs(l.y - l.lineY) > 0.2);
+  // make room for leader lines only when a label had to move
+  const labelX = FAR_X + (moved ? LEADER_ROOM : 0);
 
   const nearPlaced: number[] = foldCrawl !== null ? [y(foldCrawl)] : [];
   const nearShown = near.filter((n) => {
@@ -206,14 +220,18 @@ export function KeyCard({ tab, marks, style, near, foldCrawl, foldDistance, true
       {marks.map((m) => (
         <TickLine key={m.id} style={style} long={m.long} minor={m.minor} x0={TAB_X} w={TAB_W} y={y(m.crawl)} strokeWidth={m.long ? 0.4 : 0.25} />
       ))}
-      {farLabels.map(({ m, y: yy }) => m.long ? (
+      {farLabels.map(({ m, y: yy, lineY }) => m.long ? (
         <g key={m.id}>
-          <rect x={FAR_X} y={yy - 1.3} width={6} height={2.6} rx={0.8} fill="#17201B" />
-          <text x={FAR_X + 3} y={yy} className="svg-mono" fontSize={1.8} fontWeight={600} fill="#FFFFFF" textAnchor="middle" dominantBaseline="central">{m.id}</text>
-          <text x={FAR_X + 7} y={yy} className="svg-mono" fontSize={2} fontWeight={600} fill="#0A3F3E" dominantBaseline="central">{fmtMetres(m.distance)}</text>
+          {Math.abs(yy - lineY) > 0.2 && (
+            <polyline points={`${TAB_X + TAB_W + 0.3},${lineY} ${TAB_X + TAB_W + 1},${lineY} ${labelX - 0.5},${yy}`}
+              fill="none" stroke="#8A948E" strokeWidth={0.2} />
+          )}
+          <rect x={labelX} y={yy - 1.3} width={6} height={2.6} rx={0.8} fill="#17201B" />
+          <text x={labelX + 3} y={yy} className="svg-mono" fontSize={1.8} fontWeight={600} fill="#FFFFFF" textAnchor="middle" dominantBaseline="central">{m.id}</text>
+          <text x={labelX + 7} y={yy} className="svg-mono" fontSize={2} fontWeight={600} fill="#0A3F3E" dominantBaseline="central">{fmtMetres(m.distance)}</text>
         </g>
       ) : (
-        <text key={m.id} x={FAR_X + 1.2} y={yy} className="svg-mono" fontSize={1.5} fill="#4A5650" dominantBaseline="central">
+        <text key={m.id} x={labelX + 1.2} y={yy} className="svg-mono" fontSize={1.5} fill="#4A5650" dominantBaseline="central">
           ·{m.id.split('·')[1]} {fmtMetres(m.distance)}
         </text>
       ))}
