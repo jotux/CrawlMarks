@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { NextLink, Screen, Tip } from '../components/Screen';
 import { NumberField } from '../components/NumberField';
 import { TabDiagram } from '../components/TabDiagram';
-import { AppState, Hand, TabSpec, setupProblems } from '../state';
+import { AppState, Hand, TabSpec, setupProblems, withDistance, withoutDistance } from '../state';
 
 const PRESET_DISTANCES = [3, 5, 10, 15, 18, 20, 25, 30, 40, 50, 60, 70];
 
@@ -10,10 +10,7 @@ export function Setup({ state, setState }: { state: AppState; setState: Dispatch
   const { tab } = state;
   const problems = setupProblems(state);
   const setTab = (patch: Partial<TabSpec>) => setState((s) => ({ ...s, tab: { ...s.tab, ...patch } }));
-  const toggle = (d: number) => setState((s) => ({
-    ...s,
-    distances: s.distances.includes(d) ? s.distances.filter((x) => x !== d) : [...s.distances, d].sort((a, b) => a - b),
-  }));
+  const toggle = (d: number) => setState((s) => (s.distances.includes(d) ? withoutDistance(s, d) : withDistance(s, d)));
   const chips = [...new Set([...PRESET_DISTANCES, ...state.distances])].sort((a, b) => a - b);
 
   return (

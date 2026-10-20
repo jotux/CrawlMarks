@@ -63,7 +63,7 @@ export interface NearLabel {
 export function nearLabels(fit: CrawlFit, marks: Mark[], distances: number[], scaleMax: number): NearLabel[] {
   const fold = fit.fold;
   if (fold === null || marks.length === 0) return [];
-  return distances
+  return [...distances].sort((a, b) => a - b)
     .filter((d) => d < fold)
     .map((d) => {
       const crawl = crawlAt(fit, d);

@@ -125,7 +125,7 @@ export function Fit({ state, setState, result, readings }: {
   const { fit } = result;
   const fold = fit.fold;
   const pairs = fold !== null
-    ? state.distances.filter((d) => d < fold).flatMap((d) => {
+    ? [...state.distances].sort((a, b) => a - b).filter((d) => d < fold).flatMap((d) => {
       const twin = twinDistance(fit, d);
       return twin === null ? [] : [{ d, twin }];
     })

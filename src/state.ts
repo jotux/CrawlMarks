@@ -15,7 +15,7 @@ export interface TabSpec {
 
 export interface AppState {
   tab: TabSpec;
-  /** metres, sorted */
+  /** metres, in the order the readings list shows them (nearest first unless reordered) */
   distances: number[];
   /** raw text typed per distance, keyed by distance: strip units, 0 at the top of the zone, SCALE_MAX at the bottom */
   readings: Record<string, string>;
@@ -138,6 +138,29 @@ export function withReading(state: AppState, d: number, text: string): AppState 
     for (const [other, t] of Object.entries(readings)) if (Number(other) !== d && parseNum(t) === 0) readings[other] = '';
   }
   return { ...state, readings };
+}
+
+/**
+ * Adds distance d. A list still in distance order keeps that order; a reordered one
+ * gets d at the end.
+ */
+export function withDistance(state: AppState, d: number): AppState {
+  const ds = state.distances;
+  if (ds.includes(d)) return state;
+  const sorted = ds.every((x, i) => i === 0 || ds[i - 1] < x);
+  return { ...state, distances: sorted ? [...ds, d].sort((a, b) => a - b) : [...ds, d] };
+}
+
+/** Removes distance d. Its reading is kept, in case it comes back. */
+export const withoutDistance = (state: AppState, d: number): AppState => ({ ...state, distances: state.distances.filter((x) => x !== d) });
+
+/** Moves distance d to position `to` in the list. */
+export function withDistanceAt(state: AppState, d: number, to: number): AppState {
+  const rest = state.distances.filter((x) => x !== d);
+  if (rest.length === state.distances.length) return state;
+  const at = Math.max(0, Math.min(rest.length, to));
+  if (state.distances.indexOf(d) === at) return state;
+  return { ...state, distances: [...rest.slice(0, at), d, ...rest.slice(at)] };
 }
 
 export interface ReadingRow {

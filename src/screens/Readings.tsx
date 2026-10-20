@@ -1,11 +1,14 @@
-import { Dispatch, FormEvent, SetStateAction, useState } from 'react';
+import { Dispatch, FormEvent, SetStateAction, useRef, useState } from 'react';
 import { NextLink, Screen, Tip } from '../components/Screen';
-import { AppState, SCALE_MAX, parseNum, readingRows, validReadings, withReading } from '../state';
+import { AppState, SCALE_MAX, parseNum, readingRows, validReadings, withDistance, withDistanceAt, withReading, withoutDistance } from '../state';
 
 export function Readings({ state, setState }: { state: AppState; setState: Dispatch<SetStateAction<AppState>> }) {
   const [adding, setAdding] = useState('');
   const rows = readingRows(state);
   const valid = validReadings(state);
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState<number | null>(null);
 
   const setReading = (d: number, text: string) => setState((s) => withReading(s, d, text));
 
@@ -13,8 +16,16 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
     e.preventDefault();
     const d = parseNum(adding);
     if (d === null || d <= 0 || d > 150) return;
-    setState((s) => (s.distances.includes(d) ? s : { ...s, distances: [...s.distances, d].sort((a, b) => a - b) }));
+    setState((s) => withDistance(s, d));
     setAdding('');
+  };
+
+  /** Moves distance d to where the pointer is: below every other row whose middle is above it. */
+  const dragTo = (d: number, y: number) => {
+    const others = [...(listRef.current?.querySelectorAll<HTMLElement>('.table-row') ?? [])]
+      .filter((row) => Number(row.dataset.distance) !== d);
+    const to = others.filter((row) => { const b = row.getBoundingClientRect(); return b.top + b.height / 2 < y; }).length;
+    setState((s) => withDistanceAt(s, d, to));
   };
 
   return (
@@ -43,11 +54,34 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
       }
     >
       <div className="card table">
-        <div className="table-head"><span>Distance</span><span>Reading</span><span>Point-on</span></div>
-        {rows.map((r) => {
+        <div className="table-head"><span /><span>Distance</span><span>Reading</span><span>Point-on</span><span /></div>
+        <div ref={listRef}>
+        {rows.map((r, i) => {
           const pointOn = r.value === 0;
           return (
-            <div className="table-row" key={r.distance}>
+            <div className={`table-row${dragging === r.distance ? ' dragging' : ''}`} key={r.distance} data-distance={r.distance}>
+              <button
+                className="drag-handle"
+                aria-label={`Move ${r.distance} m. Drag, or use the arrow keys.`}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  setDragging(r.distance);
+                }}
+                onPointerMove={(e) => dragging === r.distance && dragTo(r.distance, e.clientY)}
+                onPointerUp={() => setDragging(null)}
+                onPointerCancel={() => setDragging(null)}
+                onKeyDown={(e) => {
+                  const step = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
+                  if (!step) return;
+                  e.preventDefault();
+                  setState((s) => withDistanceAt(s, r.distance, i + step));
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  {[6, 12, 18].map((y) => [9, 15].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />))}
+                </svg>
+              </button>
               <span className="distance">{r.distance} m</span>
               <div>
                 <label className={`field-box compact${r.error ? ' invalid' : ''}`}>
@@ -69,9 +103,13 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
               >
                 {pointOn ? 'Point-on' : 'Mark'}
               </button>
+              <button className="row-delete" aria-label={`Delete ${r.distance} m`} onClick={() => setState((s) => withoutDistance(s, r.distance))}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
             </div>
           );
         })}
+        </div>
         <form className="add-row" onSubmit={addDistance}>
           <label className="field-box compact">
             <span className="sr-only">New distance in metres</span>

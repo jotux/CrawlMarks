@@ -33,6 +33,8 @@ describe('screens', () => {
     expect(html.setup).toContain('Describe your tab');
     expect(html.strip).toContain('this bar = 50 mm');
     expect(html.readings).toContain('Point-on');
+    expect(html.readings).toContain('aria-label="Delete 18 m"');
+    expect(html.readings).toContain('Move 18 m.');
     expect(html.fit).toContain('Same crawl, two distances');
     expect(html.sheet).toContain('L1');
     expect(html.sheet).toContain('FOLD');
