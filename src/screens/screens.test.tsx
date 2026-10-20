@@ -33,6 +33,9 @@ describe('screens', () => {
     const html = render(sample);
     expect(html.setup).toContain('Describe your tab');
     expect(html.strip).toContain('this bar = 50 mm');
+    expect(html.strip).toContain('Your readings');
+    expect(html.strip).toContain('<td>18 m</td><td></td><td></td>');
+    expect(html.strip.match(/<tr>/g)).toHaveLength(1 + 7 + 3);
     expect(html.readings).toContain('Point-on');
     expect(html.readings).toContain('aria-label="Delete 18 m"');
     expect(html.readings).toContain('Move 18 m.');

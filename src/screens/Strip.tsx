@@ -1,6 +1,6 @@
 import { NextLink, PrintButton, Screen } from '../components/Screen';
 import { LogoImage, ScaleBar, StripDrawing } from '../components/drawings';
-import { AppState, SCALE_MAX, TabSpec, zoneLength } from '../state';
+import { AppState, SCALE_MAX, TabSpec, fmtMetres, zoneLength } from '../state';
 import { tickStep } from '../model/strip';
 
 const STEPS_TEXT = [
@@ -16,6 +16,24 @@ const scaleNote = (tab: TabSpec) => {
   const step = tickStep(zoneLength(tab), SCALE_MAX);
   return `Reads 0–${SCALE_MAX} down the marking zone, with a tick every ${step === 1 ? 'unit' : `${step} units`}.`;
 };
+
+/** Empty rows after the chosen distances, for any extra ones shot on the day. */
+const SPARE_ROWS = 3;
+
+/** Printed table for writing down the strip reading at each distance while sighting in. */
+function ReadingsTable({ distances }: { distances: number[] }) {
+  const rows = [...distances.map(fmtMetres), ...Array<string>(SPARE_ROWS).fill('')];
+  return (
+    <table className="record-table">
+      <thead>
+        <tr><th>Distance</th><th>Reading (0–{SCALE_MAX})</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        {rows.map((d, i) => <tr key={i}><td>{d}</td><td /><td /></tr>)}
+      </tbody>
+    </table>
+  );
+}
 
 export function Strip({ state }: { state: AppState }) {
   const { tab } = state;
@@ -40,6 +58,10 @@ export function Strip({ state }: { state: AppState }) {
               <h2 className="label-caps">Scale check</h2>
               <p className="muted small">The printed page has a 50 mm bar. Measure it before you cut.</p>
             </div>
+            <div>
+              <h2 className="label-caps">Readings table</h2>
+              <p className="muted small">The printed page also has a table to write your reading at each distance, ready for the next step.</p>
+            </div>
             <ol className="steps">{STEPS_TEXT.map((s) => <li key={s}>{s}</li>)}</ol>
           </div>
         </div>
@@ -55,6 +77,10 @@ export function Strip({ state }: { state: AppState }) {
           <div className="print-notes">
             <div className="print-scale"><ScaleBar trueSize /><span>this bar = 50 mm</span></div>
             <ol>{STEPS_TEXT.map((s) => <li key={s}>{s}</li>)}</ol>
+            <div>
+              <h2>Your readings</h2>
+              <ReadingsTable distances={state.distances} />
+            </div>
           </div>
         </div>
       </section>
