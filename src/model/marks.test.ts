@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fitCrawl, type CrawlFit } from './fit';
-import { buildMarks, nearLabels } from './marks';
+import { buildMarks, nearLabels, recordedMarks } from './marks';
 
 const exact = (d: number) => 60 - 200 / d - 1.2 * d;
 const r = fitCrawl([5, 10, 18, 25, 30, 40].map((d) => ({ distance: d, crawl: exact(d) })), 'fold');
@@ -44,5 +44,22 @@ describe('nearLabels', () => {
     // 10 m is the twin of 200 / (1.2 · 10) ≈ 16.67 m, which is L1·2 with 4 short lines (16 m, 17 m)
     const [ten] = nearLabels(fit, marks, [10], 52);
     expect(['L1·1', 'L1·2']).toContain(ten.ref);
+  });
+});
+
+describe('recordedMarks', () => {
+  it('draws one long line per reading, numbered up the tab, sharing lines for equal readings', () => {
+    const marks = recordedMarks([
+      { distance: 30, crawl: 26.5 },
+      { distance: 5, crawl: 26.5 },
+      { distance: 18, crawl: 39.5 },
+      { distance: 50, crawl: 0 },
+      { distance: 60, crawl: -3 },
+    ], 50);
+    expect(marks).toEqual([
+      { distance: 18, crawl: 39.5, long: true, minor: 0, id: 'L1' },
+      { distance: 5, crawl: 26.5, long: true, minor: 0, id: 'L2', alsoFor: [30] },
+      { distance: 50, crawl: 0, long: true, minor: 0, id: 'L3' },
+    ]);
   });
 });

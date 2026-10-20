@@ -2,10 +2,10 @@ import type { Dispatch, SetStateAction } from 'react';
 import { PrintButton, Screen, Tip } from '../components/Screen';
 import { KeyCard, TabTemplate } from '../components/drawings';
 import { FitResult, Reading, crawlAt } from '../model/fit';
-import { Mark, buildMarks, nearLabels } from '../model/marks';
+import { Mark, buildMarks, nearLabels, recordedMarks } from '../model/marks';
 import { TickStyle, tickSegments } from '../model/tickStyles';
 import { TickStylePicker } from '../components/TickStylePicker';
-import { AppState, MINOR_RANGE, SCALE_MAX, clampTemplateWidth, fmtMetres, templateWidth, templateWidthRange } from '../state';
+import { AppState, MINOR_RANGE, PlotMode, SCALE_MAX, clampTemplateWidth, fmtMetres, templateWidth, templateWidthRange } from '../state';
 
 function LegendLine({ style, long }: { style: TickStyle; long: boolean }) {
   return (
@@ -111,6 +111,27 @@ function TickStyleControl({ state, setState }: Controls) {
   );
 }
 
+const PLOT_MODES: { id: PlotMode; label: string; note: string }[] = [
+  { id: 'curve', label: 'Every 5 m', note: 'Lines from your curve, a long one every 5 m with short ones between.' },
+  { id: 'recorded', label: 'Recorded only', note: 'One line for each distance you recorded, at your reading. Nothing in between.' },
+];
+
+/** Whether the tab gets the fitted curve's lines or only the recorded distances. */
+function PlotModeControl({ state, setState }: Controls) {
+  const mode = PLOT_MODES.find((m) => m.id === state.plotMode) ?? PLOT_MODES[0];
+  return (
+    <div className="card plot-mode">
+      <div className="stepper-label" id="plot-mode-label">Lines on the tab</div>
+      <div className="segmented" role="group" aria-labelledby="plot-mode-label">
+        {PLOT_MODES.map((m) => (
+          <button key={m.id} aria-pressed={m.id === mode.id} onClick={() => setState((s) => ({ ...s, plotMode: m.id }))}>{m.label}</button>
+        ))}
+      </div>
+      <div className="muted small">{mode.note}</div>
+    </div>
+  );
+}
+
 /** Width of the final tab template, shared by both kinds of sheet. */
 function WidthControl({ state, setState }: Controls) {
   const widthRange = templateWidthRange(state.tab);
@@ -185,7 +206,8 @@ export function Sheet({ state, setState, result, readings }: {
 }) {
   if (readings.length === 1) return <SingleSheet state={state} setState={setState} reading={readings[0]} />;
 
-  if (!result.ok) {
+  const recorded = state.plotMode === 'recorded';
+  if (!result.ok && !recorded) {
     return (
       <Screen step={4} title="Marker sheet" intro="Fit a curve first."
         footer={<a className="cta" href="#/readings">Back to readings</a>}>
@@ -194,24 +216,27 @@ export function Sheet({ state, setState, result, readings }: {
     );
   }
 
-  const { fit } = result;
+  // recorded-only lines need no curve, so they work even when there isn't one
+  const fit = result.ok && !recorded ? result.fit : null;
   const { minorMarks: minor, tickStyle } = state;
   const width = templateWidth(state);
   // the strip and key card follow the setup tab; only the final template takes its own width
   const tab = { ...state.tab, faceWidth: width };
-  const marks = buildMarks(fit, {
-    minor,
-    scaleMax: SCALE_MAX,
-    nearestReading: Math.min(...readings.map((r) => r.distance)),
-    farthestReading: Math.max(...readings.map((r) => r.distance)),
-  });
-  const near = nearLabels(fit, marks, state.distances, SCALE_MAX);
-  const foldCrawl = fit.fold !== null && crawlAt(fit, fit.fold) <= SCALE_MAX ? crawlAt(fit, fit.fold) : null;
+  const marks = fit
+    ? buildMarks(fit, {
+      minor,
+      scaleMax: SCALE_MAX,
+      nearestReading: Math.min(...readings.map((r) => r.distance)),
+      farthestReading: Math.max(...readings.map((r) => r.distance)),
+    })
+    : recordedMarks(readings, SCALE_MAX);
+  const near = fit ? nearLabels(fit, marks, state.distances, SCALE_MAX) : [];
+  const foldCrawl = fit && fit.fold !== null && crawlAt(fit, fit.fold) <= SCALE_MAX ? crawlAt(fit, fit.fold) : null;
   const setMinor = (n: number) =>
     setState((s) => ({ ...s, minorMarks: Math.min(MINOR_RANGE.max, Math.max(MINOR_RANGE.min, n)) }));
   const step = 5 / (minor + 1);
   const keyCard = (trueSize?: boolean) => (
-    <KeyCard tab={tab} marks={marks} style={tickStyle} near={near} foldCrawl={foldCrawl} foldDistance={fit.fold} trueSize={trueSize} />
+    <KeyCard tab={tab} marks={marks} style={tickStyle} near={near} foldCrawl={foldCrawl} foldDistance={fit?.fold ?? null} trueSize={trueSize} />
   );
 
   return (
@@ -219,23 +244,30 @@ export function Sheet({ state, setState, result, readings }: {
       <Screen
         step={4}
         title="Marker sheet"
-        intro="Plain lines go on the tab. The key card is the same layout, numbered, and stays in your quiver."
+        intro={recorded
+          ? 'One plain line on the tab for each distance you recorded. The key card numbers them and stays in your quiver.'
+          : 'Plain lines go on the tab. The key card is the same layout, numbered, and stays in your quiver.'}
         footer={<PrintButton label="Print or save as PDF" />}
         asideFirst
         aside={
           <>
             <TickStyleControl state={state} setState={setState} />
+            <PlotModeControl state={state} setState={setState} />
 
-            <Stepper label="Small marks between" note={`≈ ${step.toFixed(minor >= 4 ? 2 : 1)} m per mark`}
-              value={minor} min={MINOR_RANGE.min} max={MINOR_RANGE.max}
-              less="Fewer small marks" more="More small marks" onChange={setMinor} />
+            {!recorded && (
+              <Stepper label="Small marks between" note={`≈ ${step.toFixed(minor >= 4 ? 2 : 1)} m per mark`}
+                value={minor} min={MINOR_RANGE.min} max={MINOR_RANGE.max}
+                less="Fewer small marks" more="More small marks" onChange={setMinor} />
+            )}
 
             <WidthControl state={state} setState={setState} />
           </>
         }
       >
         {marks.length === 0 ? (
-          <Tip tone="warn">None of the 5 m lines fall inside your marking zone. Check the zone on the first screen.</Tip>
+          <Tip tone="warn">
+            {recorded ? 'None of your readings fall inside the marking zone.' : 'None of the 5 m lines fall inside your marking zone.'} Check the zone on the first screen.
+          </Tip>
         ) : (
           <>
             <section className="card template-card">
@@ -244,8 +276,14 @@ export function Sheet({ state, setState, result, readings }: {
                 <h2 className="label-caps">Tab face · 1:1</h2>
                 <span className="muted mono tiny">{width} × {tab.faceLength} mm</span>
                 <div className="legend">
-                  <span><LegendLine style={tickStyle} long />Long line, every 5 m</span>
-                  <span><LegendLine style={tickStyle} long={false} />Short line, {minor} per gap</span>
+                  {recorded ? (
+                    <span><LegendLine style={tickStyle} long />One line per recorded distance</span>
+                  ) : (
+                    <>
+                      <span><LegendLine style={tickStyle} long />Long line, every 5 m</span>
+                      <span><LegendLine style={tickStyle} long={false} />Short line, {minor} per gap</span>
+                    </>
+                  )}
                 </div>
               </div>
             </section>
@@ -271,6 +309,7 @@ export function Sheet({ state, setState, result, readings }: {
             <TabTemplate tab={tab} marks={marks} style={tickStyle} trueSize />
           </div>
           <div className="print-notes">
+            {recorded && <p>Lines are at your recorded readings only. There is nothing between them.</p>}
             <p>Keep the key card in your quiver, not on the tab.</p>
           </div>
         </div>

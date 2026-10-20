@@ -1,4 +1,4 @@
-import { CrawlFit, crawlAt } from './fit';
+import { CrawlFit, Reading, crawlAt } from './fit';
 
 export interface Mark {
   distance: number;
@@ -8,6 +8,8 @@ export interface Mark {
   minor: number;
   /** L3 for the third long line, L3·2 for the second short line above it */
   id: string;
+  /** other distances that share this line (recorded-only marks with the same reading) */
+  alsoFor?: number[];
 }
 
 export interface MarkOptions {
@@ -48,6 +50,28 @@ export function buildMarks(fit: CrawlFit, o: MarkOptions): Mark[] {
     }
   });
   return marks;
+}
+
+/** Readings closer than this, in strip units, share one line. */
+const SAME_LINE = 0.5;
+
+/**
+ * One long line per recorded reading, at the reading itself rather than on a curve.
+ * Numbered from the bottom of the tab up (L1 has the biggest crawl), as curve lines are.
+ * Readings at the same strip position share a line, listed nearest first.
+ */
+export function recordedMarks(readings: Reading[], scaleMax: number): Mark[] {
+  const lines: { crawl: number; distances: number[] }[] = [];
+  for (const r of [...readings].sort((a, b) => a.distance - b.distance)) {
+    if (r.crawl < -EPS || r.crawl > scaleMax + EPS) continue;
+    const same = lines.find((l) => Math.abs(l.crawl - r.crawl) < SAME_LINE);
+    if (same) same.distances.push(r.distance);
+    else lines.push({ crawl: r.crawl, distances: [r.distance] });
+  }
+  lines.sort((a, b) => b.crawl - a.crawl);
+  return lines.map(({ crawl, distances: [distance, ...alsoFor] }, i) => ({
+    distance, crawl, long: true, minor: 0, id: `L${i + 1}`, ...(alsoFor.length ? { alsoFor } : {}),
+  }));
 }
 
 export interface NearLabel {

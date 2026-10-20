@@ -11,6 +11,7 @@ const sample: AppState = {
   curveModel: 'fold',
   tickStyle: 'split',
   templateWidth: 42,
+  plotMode: 'recorded',
 };
 const saved = (id: string, name: string, state: AppState = sample) => ({ id, name, savedAt: 0, state });
 

@@ -87,6 +87,17 @@ describe('screens', () => {
     expect(render({ ...defaultState, distances: [] }).setup).toContain('Pick at least one distance.');
   });
 
+  it('plot only recorded distances when asked, even without a curve', () => {
+    const html = render({ ...sample, plotMode: 'recorded' });
+    expect(html.sheet).toContain('One line per recorded distance');
+    expect(html.sheet).not.toContain('Small marks between');
+    expect(html.sheet).not.toContain('FOLD');
+    expect(html.sheet).toContain('5 · 30 m');
+    expect(render(sample).sheet).toContain('Small marks between');
+    const two = render({ ...sample, plotMode: 'recorded', readings: { 18: '39.5', 30: '26.5' } });
+    expect(two.sheet).toContain('One line per recorded distance');
+  });
+
   it('explain what is missing before there are readings', () => {
     const html = render(defaultState);
     expect(html.readings).toContain('Enter readings for at least three distances.');

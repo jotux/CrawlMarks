@@ -16,6 +16,7 @@ The app walks you through five steps:
 4. **Fit the curve.** CrawlMarks fits a curve through your readings and shows how well it matches them. You can pick which curve to use.
 5. **Get your marker sheet.** You get two things to print:
    - **A tab template at 1:1.** It has only plain lines: a long line every 5 m and a short line for each step in between (you pick how many). Its width starts at your tab's face width and can be set anywhere from 10 mm up to 20 mm wider than the face.
+   - **Lines on the tab:** *Every 5 m* (the default) draws lines from the fitted curve. *Recorded only* draws one line for each distance you recorded, at your reading, with nothing in between. It needs no curve, so it works with just two readings.
    - **A key card the size of a US business card** (3.5 × 2 in). It shows the same line layout, stretched to fill the card's height, with every line numbered (L1, L2, L2·3 and so on) and the distance it stands for. It fits in a wallet or quiver pocket, not on the tab.
 
 ## Saving and sharing

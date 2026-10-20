@@ -4,6 +4,10 @@ import { DEFAULT_TICK_STYLE, TickStyle, isTickStyle } from './model/tickStyles';
 
 export type Hand = 'right' | 'left';
 
+/** What the marker sheet draws: lines from the fitted curve every 5 m, or only the recorded distances. */
+export type PlotMode = 'curve' | 'recorded';
+export const isPlotMode = (v: unknown): v is PlotMode => v === 'curve' || v === 'recorded';
+
 export interface TabSpec {
   hand: Hand;
   /** mm, all measured from the top edge of the tab face */
@@ -24,6 +28,7 @@ export interface AppState {
   /** mm width of the final tab template; null follows the face width from setup */
   templateWidth: number | null;
   curveModel: CurveModel;
+  plotMode: PlotMode;
 }
 
 export const MINOR_RANGE = { min: 1, max: 10 };
@@ -41,6 +46,7 @@ export const defaultState: AppState = {
   tickStyle: DEFAULT_TICK_STYLE,
   templateWidth: null,
   curveModel: DEFAULT_CURVE_MODEL,
+  plotMode: 'curve',
 };
 
 const STORAGE_KEY = 'crawlmarks:v3';
@@ -59,6 +65,7 @@ function merge(saved: Partial<AppState>): AppState {
     readings: { ...saved.readings },
     tickStyle: isTickStyle(saved.tickStyle) ? saved.tickStyle : DEFAULT_TICK_STYLE,
     curveModel: isCurveModel(saved.curveModel) ? saved.curveModel : DEFAULT_CURVE_MODEL,
+    plotMode: isPlotMode(saved.plotMode) ? saved.plotMode : 'curve',
   };
 }
 

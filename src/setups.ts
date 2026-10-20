@@ -1,6 +1,6 @@
 import { CurveModel, DEFAULT_CURVE_MODEL, isCurveModel } from './model/fit';
 import { DEFAULT_TICK_STYLE, isTickStyle } from './model/tickStyles';
-import { AppState, MINOR_RANGE, defaultState, fmtMetres, validReadings } from './state';
+import { AppState, MINOR_RANGE, defaultState, fmtMetres, isPlotMode, validReadings } from './state';
 
 /** A setup saved in this browser under a name. */
 export interface SavedSetup {
@@ -52,6 +52,7 @@ export function sanitizeState(raw: unknown): AppState | null {
     tickStyle: isTickStyle(raw.tickStyle) ? raw.tickStyle : DEFAULT_TICK_STYLE,
     templateWidth: typeof raw.templateWidth === 'number' && Number.isFinite(raw.templateWidth) ? raw.templateWidth : null,
     curveModel: isCurveModel(raw.curveModel) ? (raw.curveModel as CurveModel) : DEFAULT_CURVE_MODEL,
+    plotMode: isPlotMode(raw.plotMode) ? raw.plotMode : 'curve',
   };
 }
 

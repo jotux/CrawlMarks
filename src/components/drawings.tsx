@@ -210,7 +210,7 @@ export function KeyCard({ tab, marks, style, near, foldCrawl, foldDistance, true
         <g key={m.id}>
           <rect x={FAR_X} y={yy - 1.3} width={6} height={2.6} rx={0.8} fill="#17201B" />
           <text x={FAR_X + 3} y={yy} className="svg-mono" fontSize={1.8} fontWeight={600} fill="#FFFFFF" textAnchor="middle" dominantBaseline="central">{m.id}</text>
-          <text x={FAR_X + 7} y={yy} className="svg-mono" fontSize={2} fontWeight={600} fill="#0A3F3E" dominantBaseline="central">{fmtMetres(m.distance)}</text>
+          <text x={FAR_X + 7} y={yy} className="svg-mono" fontSize={2} fontWeight={600} fill="#0A3F3E" dominantBaseline="central">{m.alsoFor ? `${[m.distance, ...m.alsoFor].map((d) => fmtMetres(d).replace(' m', '')).join(' · ')} m` : fmtMetres(m.distance)}</text>
         </g>
       ) : (
         <text key={m.id} x={FAR_X + 1.2} y={yy} className="svg-mono" fontSize={1.5} fill="#4A5650" dominantBaseline="central">
@@ -226,7 +226,9 @@ export function KeyCard({ tab, marks, style, near, foldCrawl, foldDistance, true
           <path d={`M ${NEAR_RIGHT - 1} ${y(n.crawl) - 0.7} l 1.2 0.7 l -1.2 0.7 z`} fill="#9A3412" />
         </g>
       ))}
-      <text x={CARD.w / 2} y={CARD.h - 2.4} className="svg-mono" fontSize={1.4} fill="#4A5650" textAnchor="middle">L2·3 = 3rd short line above L2</text>
+      {marks.some((m) => !m.long) && (
+        <text x={CARD.w / 2} y={CARD.h - 2.4} className="svg-mono" fontSize={1.4} fill="#4A5650" textAnchor="middle">L2·3 = 3rd short line above L2</text>
+      )}
     </svg>
   );
 }
