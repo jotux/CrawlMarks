@@ -172,6 +172,93 @@ h1, h2, p { margin: 0; }
   pointer-events: none;
 }
 
+/* ---------- setups: save, open, share ---------- */
+
+.topbar-start { min-width: 0; display: flex; }
+.setup-name {
+  display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; height: 40px; padding: 0 8px; margin-left: -8px;
+  border: none; border-radius: 8px; background: none; color: var(--ink-2); font: 600 13px var(--sans); text-align: left;
+}
+.setup-name:hover { background: var(--surface); color: var(--ink); }
+.setup-name svg { flex-shrink: 0; color: var(--teal); }
+.setup-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.unsaved-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.menu-wrap { position: relative; }
+/* the arrows menu: same shape as RangePlotter's, in this app's colours */
+.menu-btn { position: relative; width: 44px; height: 44px; margin-left: -8px; padding: 0; border: none; border-radius: 10px; background: none; color: var(--ink); display: grid; place-items: center; }
+.menu-btn:hover, .menu-btn[aria-expanded='true'] { background: var(--surface); }
+.menu-btn .unsaved-dot { position: absolute; top: 6px; right: 4px; }
+.menu {
+  position: absolute; top: calc(100% + 6px); left: -8px; z-index: 30; min-width: 200px; max-width: calc(100vw - 24px); padding: 4px;
+  display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+.menu button { background: none; border: 0; color: var(--ink); text-align: left; font-size: 17px; padding: 12px 14px; border-radius: 8px; }
+.menu button:hover { background: var(--surface-sunk); }
+.menu button:active { background: var(--teal-wash); }
+.menu-title { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px 8px; font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.menu-title small { font-weight: 400; font-size: 12px; color: var(--muted); }
+.menu-divider { height: 1px; margin: 4px 10px; background: var(--line); }
+.setup-block { display: flex; flex-direction: column; gap: 2px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-sunk); }
+.setup-block-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.setup-block .setup-name { margin-left: -8px; font-size: 15px; color: var(--ink); }
+.setup-block .setup-name:hover { background: var(--surface); }
+.setup-block-actions { display: flex; gap: 2px; margin-left: -8px; }
+.setup-block-actions .btn-text { height: 32px; font-size: 13px; }
+
+.modal {
+  /* a bottom sheet on phones */
+  width: 100%; max-width: 480px; max-height: 88dvh; margin: auto auto 0; padding: 0;
+  border: none; border-radius: 18px 18px 0 0; background: var(--surface); color: var(--ink);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
+}
+.modal::backdrop { background: rgba(10, 16, 13, 0.5); }
+.modal-body:focus { outline: none; }
+.modal-body { padding: 16px 20px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+.modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.modal-head h2 { font: 700 24px/1.1 var(--display); min-width: 0; overflow-wrap: anywhere; }
+.icon-btn { flex-shrink: 0; width: 40px; height: 40px; border: none; border-radius: 50%; background: none; color: var(--muted); display: grid; place-items: center; }
+.icon-btn:hover { background: var(--surface-sunk); color: var(--ink); }
+.modal-note { font-size: 14px; line-height: 1.45; color: var(--muted); }
+.modal-note strong { color: var(--ink); font-size: 16px; }
+.modal-note.warn { color: var(--near); }
+.modal-note.small { font-size: 12px; }
+.menu-actions, .modal-form { display: flex; flex-direction: column; gap: 10px; }
+.menu-actions .btn-outline { width: 100%; }
+.btn-text.center { align-self: center; color: var(--muted); }
+.btn-text.danger { color: var(--miss); }
+
+.setup-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--line-soft); }
+.setup-list li { border-bottom: 1px solid var(--line-soft); }
+.setup-row { display: flex; align-items: center; gap: 4px; min-height: 60px; }
+.setup-row.confirm { gap: 8px; padding: 0 4px; font-size: 14px; }
+.setup-row.confirm span { flex: 1; min-width: 0; }
+.setup-open {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; border: none; border-radius: 8px;
+  background: none; color: var(--ink); text-align: left;
+}
+.setup-open:hover { background: var(--surface-sunk); }
+.setup-open-name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.setup-open-meta { font: 500 12px var(--mono); color: var(--muted); }
+.setup-badge { padding: 1px 6px; border-radius: 4px; background: var(--teal-wash); color: var(--teal-deep); font-size: 11px; font-weight: 600; }
+
+.qr { display: block; width: min(220px, 70vw); height: auto; margin: 0 auto; border-radius: 8px; }
+.share-url input { font: 500 12px var(--mono); color: var(--muted); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 20; transform: translate(-50%, 12px);
+  max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: 10px; background: var(--ink); color: var(--ground);
+  font-size: 14px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 160ms, transform 160ms;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast:empty { padding: 0; }
+
+@media (min-width: 900px) {
+  .modal { max-width: 440px; margin: auto; border-radius: 16px; box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3); }
+  .modal-body { padding: 20px 24px 24px; }
+  .toast { bottom: 32px; }
+}
+
 /* ---------- desktop: sidebar of steps, content beside its controls ---------- */
 
 @media (min-width: 900px) {
@@ -371,7 +458,7 @@ figcaption span { display: flex; align-items: center; gap: 5px; }
 
 @media print {
   body { background: #FFFFFF; }
-  .no-print { display: none !important; }
+  .no-print, .modal, .toast { display: none !important; }
   .print-only { display: block; }
   .print-page { font-family: var(--sans); color: #000000; font-size: 10pt; }
   .print-page > svg:first-child { margin-bottom: 4mm; }

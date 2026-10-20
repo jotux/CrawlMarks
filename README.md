@@ -18,6 +18,15 @@ The app walks you through five steps:
    - **A tab template at 1:1.** It has only plain lines: a long line every 5 m and a short line for each step in between (you pick how many). Its width starts at your tab's face width and can be set anywhere from 10 mm up to 20 mm wider than the face.
    - **A key card the size of a US business card** (3.5 × 2 in). It shows the same line layout, stretched to fill the card's height, with every line numbered (L1, L2, L2·3 and so on) and the distance it stands for. It fits in a wallet or quiver pocket, not on the tab.
 
+## Saving and sharing
+
+Your current work is kept in your browser automatically. To keep more than one setup (say, indoor and outdoor), open the menu (the three arrows at the top left on a phone, or the Setup box in the sidebar on desktop):
+
+- **Save** or **Save as…** stores the current setup under a name, in this browser only.
+- **Open…** lists your saved setups. Delete one with its ✕.
+- **Share link** makes a link (and a QR code) holding the whole setup: tab size, distances, readings and marker sheet settings. Open it on your phone or another computer to load it there. The setup travels in the part of the link after `#`, which browsers never send to the server.
+- **New setup** starts again from the defaults.
+
 ## The crawl model
 
 On the curve step you choose the curve to fit to your readings. `d` is the distance in metres.
@@ -42,7 +51,7 @@ Under World Archery barebow rules, marks on a tab must be simple and uniform. Th
 
 ## Standalone by design
 
-CrawlMarks needs no server, account or network connection. The build is a single `index.html` with its code, styles and fonts inlined. Open it from disk, put it on a USB stick, or host it on any static web server. Your tab size and readings are saved in your browser's local storage and never leave your device.
+CrawlMarks needs no server, account or network connection. The build is a single `index.html` with its code, styles and fonts inlined. Open it from disk, put it on a USB stick, or host it on any static web server. Your tab size, readings and saved setups are kept in your browser's local storage and never leave your device unless you share a link.
 
 Printing uses the browser's own print dialog, which can also save to PDF. The strip, tab template and key card print at true millimetre size, so always print at 100% scale.
 

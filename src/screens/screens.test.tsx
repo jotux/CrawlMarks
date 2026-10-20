@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { QrCode, SetupControl, SetupsApi, SetupsProvider } from '../components/Setups';
 import { fitCrawl } from '../model/fit';
 import { AppState, defaultState, validReadings, withReading } from '../state';
 import { Fit } from './Fit';
@@ -91,5 +92,16 @@ describe('screens', () => {
     expect(html.readings).toContain('Enter readings for at least three distances.');
     expect(html.fit).toContain('three or more distances');
     expect(html.sheet).toContain('Back to readings');
+  });
+
+  it('show the open setup and draw share QR codes', () => {
+    const api = { state: sample, current: { id: 'a', name: 'Indoor 18 m' }, library: [], unsaved: true } as unknown as SetupsApi;
+    const header = renderToStaticMarkup(<SetupsProvider value={api}><SetupControl variant="header" /></SetupsProvider>);
+    expect(header).toContain('Indoor 18 m');
+    expect(header).toContain('unsaved-dot');
+    const sidebar = renderToStaticMarkup(<SetupsProvider value={api}><SetupControl variant="sidebar" /></SetupsProvider>);
+    expect(sidebar).toContain('>Share<');
+    expect(renderToStaticMarkup(<SetupControl variant="header" />)).toBe('');
+    expect(renderToStaticMarkup(<QrCode text="https://jotux.github.io/CrawlMarks/#/open?s=zAbC" />)).toMatch(/<path d="M\d+ \d+h1v1h-1z/);
   });
 });

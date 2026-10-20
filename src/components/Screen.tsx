@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { SetupControl } from './Setups';
 import { STEPS, StepId } from '../steps';
 // bump package.json "version" with each fix or feature; only this field is bundled
 import { version } from '../../package.json';
@@ -31,6 +32,7 @@ function Sidebar({ step }: { step: number }) {
   return (
     <aside className="sidebar">
       <Wordmark />
+      <SetupControl variant="sidebar" />
       <nav aria-label="Steps">
         <ol className="step-nav">
           {STEPS.map((s, i) => (
@@ -74,7 +76,7 @@ export function Screen({ step, title, intro, children, footer, aside, asideFirst
       {desktop && <Sidebar step={step} />}
       <div className="screen-body">
         <header className="topbar">
-          <span />
+          <div className="topbar-start"><SetupControl variant="header" /></div>
           <Wordmark />
           <div className="step-count">STEP {step + 1} / {STEPS.length}</div>
         </header>
