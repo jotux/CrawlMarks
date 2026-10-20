@@ -25,7 +25,9 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
       footer={
         <>
           <NextLink to="fit" blocked={valid.length < 3
-            ? `Enter readings for at least three distances${valid.length === 1 ? ', or make a tab for just this one' : ''}.`
+            ? state.distances.length === 1 && valid.length === 0
+              ? 'Enter your reading to make a tab for this distance.'
+              : `Enter readings for at least three distances${valid.length === 1 ? ', or make a tab for just this one' : ''}.`
             : null}>
             Fit my curve
           </NextLink>

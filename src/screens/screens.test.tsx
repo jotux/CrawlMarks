@@ -77,6 +77,13 @@ describe('screens', () => {
     expect(render({ ...sample, readings: { 18: '39.5', 25: '32' } }).readings).not.toContain('Build tab for single distance');
   });
 
+  it('let setup continue with a single distance', () => {
+    const one = render({ ...defaultState, distances: [18] });
+    expect(one.setup).not.toContain('Pick at least');
+    expect(one.readings).toContain('Enter your reading to make a tab for this distance.');
+    expect(render({ ...defaultState, distances: [] }).setup).toContain('Pick at least one distance.');
+  });
+
   it('explain what is missing before there are readings', () => {
     const html = render(defaultState);
     expect(html.readings).toContain('Enter readings for at least three distances.');

@@ -124,7 +124,7 @@ export function setupProblems(state: AppState): string[] {
   if (!(zoneStart >= 0)) out.push('The marking zone can’t start above the top edge.');
   if (!(zoneEnd > zoneStart + 5)) out.push('The marking zone needs to be at least 5 mm tall.');
   if (!(zoneEnd <= faceLength)) out.push('The marking zone must end on the tab face.');
-  if (state.distances.length < 3) out.push('Pick at least three distances.');
+  if (state.distances.length < 1) out.push('Pick at least one distance.');
   return out;
 }
 
