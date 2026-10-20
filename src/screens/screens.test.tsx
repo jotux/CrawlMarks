@@ -100,6 +100,12 @@ describe('screens', () => {
     expect(two.sheet).toContain('One line per recorded distance');
   });
 
+  it('change only the preview width when the template width changes', () => {
+    const px = (templateWidth: number) => Number(/template-preview" style="width:([\d.]+)px/.exec(render({ ...sample, templateWidth }).sheet)?.[1]);
+    expect(px(10) / px(58)).toBeCloseTo(10 / 58);
+    expect(render(sample).sheet).toContain('box-sizing:content-box');
+  });
+
   it('explain what is missing before there are readings', () => {
     const html = render(defaultState);
     expect(html.readings).toContain('Enter readings for at least three distances.');

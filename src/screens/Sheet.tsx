@@ -38,8 +38,24 @@ function Stepper({ label, note, value, unit, min, max, less, more, onChange }: {
   );
 }
 
-/** On-screen scale for the template preview, fixed so a width change reads as width, not length. */
+/** Most on-screen px per mm for the template preview, and most px the widest allowed template may take. */
 const PREVIEW_PX_PER_MM = 2.6;
+const PREVIEW_MAX_PX = 150;
+
+/**
+ * The final tab template on screen. Its scale is fixed per tab setup (fitting the widest
+ * template allowed), so changing the width changes only the width, never the length.
+ */
+function TemplatePreview({ state, marks }: { state: AppState; marks: Mark[] }) {
+  const width = templateWidth(state);
+  const pxPerMm = Math.min(PREVIEW_PX_PER_MM, PREVIEW_MAX_PX / templateWidthRange(state.tab).max);
+  return (
+    // content-box: the drawing gets exactly this width, with the padding outside it
+    <div className="template-preview" style={{ width: width * pxPerMm, boxSizing: 'content-box' }}>
+      <TabTemplate tab={{ ...state.tab, faceWidth: width }} marks={marks} style={state.tickStyle} />
+    </div>
+  );
+}
 
 /** Where the rules come from: World Archery Book 3, Target Archery, version 2026-01-27. */
 const RULE_BOOK = 'World Archery Book 3, version 2026-01-27';
@@ -172,7 +188,7 @@ function SingleSheet({ state, setState, reading }: {
         }
       >
         <section className="card template-card">
-          <div className="template-preview" style={{ width: width * PREVIEW_PX_PER_MM, maxWidth: '50%' }}><TabTemplate tab={tab} marks={marks} style={state.tickStyle} /></div>
+          <TemplatePreview state={state} marks={marks} />
           <div className="template-info">
             <h2 className="label-caps">Tab face · 1:1</h2>
             <span className="muted mono tiny">{width} × {tab.faceLength} mm</span>
@@ -273,7 +289,7 @@ export function Sheet({ state, setState, result, readings }: {
         ) : (
           <>
             <section className="card template-card">
-              <div className="template-preview" style={{ width: width * PREVIEW_PX_PER_MM, maxWidth: '50%' }}><TabTemplate tab={tab} marks={marks} style={tickStyle} /></div>
+              <TemplatePreview state={state} marks={marks} />
               <div className="template-info">
                 <h2 className="label-caps">Tab face · 1:1</h2>
                 <span className="muted mono tiny">{width} × {tab.faceLength} mm</span>
