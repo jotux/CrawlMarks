@@ -48,7 +48,8 @@ Under World Archery barebow rules, marks on a tab must be simple and uniform. Th
 
 - Only two line lengths, all the same thickness and colour.
 - No numbers or writing on the tab face.
-- The key card is kept separate from the tab.
+
+Whether you can carry the key card varies by event, so check the rules for each event you shoot.
 
 ## Standalone by design
 

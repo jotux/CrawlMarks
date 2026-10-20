@@ -41,6 +41,8 @@ describe('screens', () => {
     expect(html.sheet).toContain('FOLD');
     expect(html.sheet).toContain('Art. 9.3.7 Finger Protection');
     expect(html.sheet).toContain('Additional memoranda are not permitted.');
+    expect(html.sheet).not.toContain('Key card kept separate');
+    expect(html.sheet).toContain('Key card: whether you can carry one varies by event.');
     expect(html.sheet).toContain('Interpretation, 11 Aug 2020, Barebow tab 3');
   });
 

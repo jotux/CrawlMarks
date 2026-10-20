@@ -69,21 +69,17 @@ const RULES: Rule[] = [
     cite: 'Art. 9.3.7 Finger Protection',
     quote: 'Additional memoranda are not permitted.',
   },
-  {
-    text: 'Key card kept separate from the tab',
-    cite: 'Follows from Art. 9.3.7 Finger Protection',
-    quote: 'Additional memoranda are not permitted.',
-  },
 ];
 
-function Rules({ items = RULES }: { items?: Rule[] }) {
+/** Rules for the tab itself; with keyCard, a reminder that carrying the key card is up to each event. */
+function Rules({ keyCard }: { keyCard?: boolean }) {
   return (
     <div className="rules">
       <div className="rules-head">
         <h2 className="label-caps">World Archery barebow rules</h2>
         <div className="rules-source">{RULE_BOOK}</div>
       </div>
-      {items.map((r) => (
+      {RULES.map((r) => (
         <div key={r.text} className="rule">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>
           <div>
@@ -95,6 +91,12 @@ function Rules({ items = RULES }: { items?: Rule[] }) {
           </div>
         </div>
       ))}
+      {keyCard && (
+        <div className="rule rule-note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16v.5" /></svg>
+          <div>Key card: whether you can carry one varies by event. Check the rules for each event you shoot.</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -179,7 +181,7 @@ function SingleSheet({ state, setState, reading }: {
             </div>
           </div>
         </section>
-        <Rules items={RULES.slice(0, 2)} />
+        <Rules />
       </Screen>
 
       <section className="print-only print-page">
@@ -298,7 +300,7 @@ export function Sheet({ state, setState, result, readings }: {
           </>
         )}
 
-        <Rules />
+        <Rules keyCard />
       </Screen>
 
       <section className="print-only print-page">
