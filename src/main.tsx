@@ -9,6 +9,9 @@ import '@fontsource/ibm-plex-mono/latin-500.css';
 import '@fontsource/ibm-plex-mono/latin-600.css';
 import './styles.css';
 import App from './App';
+import { applyThemeOverride } from './themeOverride';
+
+applyThemeOverride();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

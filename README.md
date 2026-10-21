@@ -65,7 +65,7 @@ Requires Node 18 or newer.
 
 ```sh
 npm install
-npm run dev      # local dev server
+npm run dev      # local dev server; open /preview.html for phone and desktop side by side, with a light/dark toggle
 npm test         # unit tests for the curve fit, mark layout and screens
 npm run build    # writes the standalone app to dist/index.html
 ```
