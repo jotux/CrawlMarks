@@ -356,7 +356,7 @@ h1, h2, p { margin: 0; }
 .diagram-label .mono { font-family: var(--mono); font-weight: 600; }
 
 .strip-card { display: flex; gap: 16px; padding: 16px; }
-.strip-preview { width: 120px; flex-shrink: 0; }
+.strip-preview { flex-shrink: 0; align-self: flex-start; }
 .strip-info { display: flex; flex-direction: column; gap: 14px; font-size: 13px; line-height: 1.45; min-width: 0; }
 .strip-info h2 { margin-bottom: 4px; }
 .strip-logo { width: 120px; }

@@ -109,6 +109,25 @@ describe('screens', () => {
     expect(render(sample).sheet).toContain('box-sizing:content-box');
   });
 
+  it('draw the strip preview at a fixed scale, so its length follows the face length', () => {
+    const width = (faceWidth: number) => Number(/strip-preview" style="width:([\d.]+)px/.exec(render({ ...sample, tab: { ...sample.tab, faceWidth } }).strip)?.[1]);
+    expect(width(20) / width(38)).toBeCloseTo(20 / 38);
+    expect(width(120)).toBeCloseTo(150);
+  });
+
+  it('keep strip ticks and numbers inside the strip when the zone runs to its edges', () => {
+    const edge = render({ ...sample, tab: { ...sample.tab, faceLength: 60, zoneStart: 0, zoneEnd: 60 } }).strip;
+    const ys = [...edge.matchAll(/<text x="[\d.]+" y="([\d.]+)" class="svg-mono"/g)].map((m) => Number(m[1]));
+    expect(ys.length).toBeGreaterThan(0);
+    for (const y of ys) expect(y >= 1.7 && y <= 60 - 3.2).toBe(true);
+    // the 50 tick sits in the bottom corner: it starts at the cut line and keeps its full 7 mm
+    const fifty = /<line x1="([\d.]+)" x2="([\d.]+)" y1="60"/.exec(edge);
+    expect(Number(fifty?.[1])).toBeGreaterThan(0);
+    expect(Number(fifty?.[2]) - Number(fifty?.[1])).toBeCloseTo(7);
+    expect(edge).toContain('>TOP</text>');
+    expect(edge).not.toContain('NOCK SIDE');
+  });
+
   it('explain what is missing before there are readings', () => {
     const html = render(defaultState);
     expect(html.readings).toContain('Enter readings for at least three distances.');

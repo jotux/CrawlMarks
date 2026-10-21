@@ -49,10 +49,24 @@ function size(w: number, h: number, trueSize?: boolean) {
   return trueSize ? { width: `${w}mm`, height: `${h}mm` } : { className: 'scaled' };
 }
 
-/** Tab face outline: gentle corners at the top, rounder at the bottom. */
-export function facePath(w: number, h: number) {
-  const r1 = Math.min(w, h) * 0.1;
-  const r2 = Math.min(w * 0.4, h * 0.3);
+/** Corner radii of the outline: gentle at the top; the tab face rounds more at the bottom, the strip doesn't. */
+const faceRadii = (w: number, h: number, roundBottom = true) => {
+  const top = Math.min(w, h) * 0.1;
+  return { top, bottom: roundBottom ? Math.min(w * 0.4, h * 0.3) : top };
+};
+
+/** How far in from the side edge the outline is at height y: zero except in the rounded corners. */
+export function faceInset(w: number, h: number, y: number, roundBottom = true) {
+  const { top, bottom } = faceRadii(w, h, roundBottom);
+  const arc = (r: number, d: number) => r - Math.sqrt(Math.max(0, r * r - d * d));
+  if (y < top) return arc(top, top - y);
+  if (y > h - bottom) return arc(bottom, y - (h - bottom));
+  return 0;
+}
+
+/** Tab face outline: gentle corners at the top, rounder at the bottom unless roundBottom is false. */
+export function facePath(w: number, h: number, roundBottom = true) {
+  const { top: r1, bottom: r2 } = faceRadii(w, h, roundBottom);
   return `M ${r1},0 H ${w - r1} A ${r1} ${r1} 0 0 1 ${w},${r1} V ${h - r2} A ${r2} ${r2} 0 0 1 ${w - r2},${h} `
     + `H ${r2} A ${r2} ${r2} 0 0 1 0,${h - r2} V ${r1} A ${r1} ${r1} 0 0 1 ${r1},0 Z`;
 }
@@ -91,6 +105,12 @@ export function Logo({ x, y, width }: { x: number; y: number; width: number }) {
   );
 }
 
+/**
+ * Font size of the strip's numbers, and how close to the top and bottom cut lines their
+ * middles may sit (more room at the bottom, where the corner curves in under them).
+ */
+const STRIP_LABEL = { size: 2.6, top: 1.7, bottom: 3.2 };
+
 export function StripDrawing({ tab, trueSize }: { tab: TabSpec; trueSize?: boolean }) {
   const { faceWidth: w, faceLength: h } = tab;
   const ticks = stripTicks(zoneLength(tab), SCALE_MAX);
@@ -99,20 +119,31 @@ export function StripDrawing({ tab, trueSize }: { tab: TabSpec; trueSize?: boole
   const x0 = left ? 0 : w;
   const dir = left ? 1 : -1;
   const LEN = { label: 7, half: 5, small: 3 };
+  // each tick starts at the cut line, so in the rounded corners it steps in and keeps its full length
+  const edge = (y: number) => x0 + dir * faceInset(w, h, y, false);
+  // numbers stay inside the strip even when the zone starts or ends at its edge
+  const labelY = (y: number) => Math.min(h - STRIP_LABEL.bottom, Math.max(STRIP_LABEL.top, y));
+  // TOP sits in the top corner away from the ticks
+  const corner = Math.max(1.2, faceRadii(w, h, false).top);
   return (
     <svg viewBox={`0 0 ${w} ${h}`} {...size(w, h, trueSize)} role="img"
       aria-label={`Sight-in strip, 0 to ${SCALE_MAX} with a tick every ${tickStep(zoneLength(tab), SCALE_MAX)}`}>
-      <path d={facePath(w, h)} {...CUT} />
+      <path d={facePath(w, h, false)} {...CUT} />
       {ticks.map((t) => {
         const y = unitsToMm(tab, t.units);
-        return <line key={t.units} x1={x0} x2={x0 + dir * LEN[t.size]} y1={y} y2={y} stroke="#17201B" strokeWidth={t.size === 'small' ? 0.18 : 0.3} />;
+        return <line key={t.units} x1={edge(y)} x2={edge(y) + dir * LEN[t.size]} y1={y} y2={y} stroke="#17201B" strokeWidth={t.size === 'small' ? 0.18 : 0.3} />;
       })}
-      {ticks.filter((t) => t.size === 'label').map((t) => (
-        <text key={t.units} x={x0 + dir * 8.5} y={unitsToMm(tab, t.units)} className="svg-mono" fontSize={2.6} dominantBaseline="central" textAnchor={left ? 'start' : 'end'}>
-          {t.units}
-        </text>
-      ))}
-      <text x={w / 2} y={1.2} className="svg-sans" fontSize={2} fill="#4A5650" textAnchor="middle" dominantBaseline="hanging" letterSpacing={0.15}>TOP · NOCK SIDE</text>
+      {ticks.filter((t) => t.size === 'label').map((t) => {
+        const y = labelY(unitsToMm(tab, t.units));
+        return (
+          <text key={t.units} x={edge(y) + dir * 8.5} y={y} className="svg-mono" fontSize={STRIP_LABEL.size}
+            dominantBaseline="central" textAnchor={left ? 'start' : 'end'}>
+            {t.units}
+          </text>
+        );
+      })}
+      <text x={left ? w - corner : corner} y={1.1} className="svg-sans" fontSize={2} fontWeight={600} fill="#4A5650"
+        textAnchor={left ? 'end' : 'start'} dominantBaseline="hanging" letterSpacing={0.15}>TOP</text>
     </svg>
   );
 }

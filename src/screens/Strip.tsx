@@ -17,6 +17,24 @@ const scaleNote = (tab: TabSpec) => {
   return `Reads 0–${SCALE_MAX} down the marking zone, with a tick every ${step === 1 ? 'unit' : `${step} units`}.`;
 };
 
+/** On-screen px per mm for the strip preview, and the most px a very wide face may take across. */
+const PREVIEW_PX_PER_MM = 2.6;
+const PREVIEW_MAX_PX = 150;
+
+/**
+ * The strip on screen at a fixed scale, so its outline is always in proportion to the face
+ * length, whatever the width. Only faces too wide for PREVIEW_MAX_PX are drawn smaller.
+ */
+function StripPreview({ tab }: { tab: TabSpec }) {
+  const pxPerMm = Math.min(PREVIEW_PX_PER_MM, PREVIEW_MAX_PX / tab.faceWidth);
+  return (
+    // content-box: the drawing gets exactly this width, with the padding outside it
+    <div className="strip-preview" style={{ width: tab.faceWidth * pxPerMm, boxSizing: 'content-box' }}>
+      <StripDrawing tab={tab} />
+    </div>
+  );
+}
+
 /** Empty rows after the chosen distances, for any extra ones shot on the day. */
 const SPARE_ROWS = 3;
 
@@ -46,7 +64,7 @@ export function Strip({ state }: { state: AppState }) {
         footer={<NextLink to="readings">I've shot my distances</NextLink>}
       >
         <div className="card strip-card">
-          <div className="strip-preview"><StripDrawing tab={tab} /></div>
+          <StripPreview tab={tab} />
           <div className="strip-info">
             <div className="strip-logo"><LogoImage width={45} /></div>
             <div>
