@@ -50,12 +50,6 @@ export const defaultState: AppState = {
 };
 
 const STORAGE_KEY = 'crawlmarks:v3';
-/** Older saves, newest first, with how many of their reading units fit in the zone */
-const OLDER_KEYS: { key: string; units: (tab: TabSpec) => number }[] = [
-  { key: 'baremarks:v3', units: () => SCALE_MAX }, // same format, saved before the rename
-  { key: 'baremarks:v2', units: () => 100 },
-  { key: 'baremarks:v1', units: (tab) => zoneLength(tab) }, // mm
-];
 
 function merge(saved: Partial<AppState>): AppState {
   return {
@@ -72,20 +66,7 @@ function merge(saved: Partial<AppState>): AppState {
 function load(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return merge(JSON.parse(raw));
-    for (const { key, units } of OLDER_KEYS) {
-      const old = localStorage.getItem(key);
-      if (!old) continue;
-      const state = merge(JSON.parse(old));
-      const factor = SCALE_MAX / units(state.tab);
-      const readings: Record<string, string> = {};
-      for (const [d, text] of Object.entries(state.readings)) {
-        const n = parseNum(text);
-        readings[d] = n === null ? text : String(Math.round(n * factor * 2) / 2);
-      }
-      return { ...state, readings };
-    }
-    return defaultState;
+    return raw ? merge(JSON.parse(raw)) : defaultState;
   } catch {
     return defaultState;
   }

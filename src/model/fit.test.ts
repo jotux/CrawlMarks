@@ -4,7 +4,7 @@ import { crawlAt, farDistanceFor, fitCrawl, offCurve, twinDistance, type CrawlFi
 const truth = { a: 60, b: 200, c: 1.2 };
 const exact = (d: number) => truth.a - truth.b / d - truth.c * d;
 
-function mustFit(readings: { distance: number; crawl: number }[], model: CurveModel = 'fold'): CrawlFit {
+function mustFit(readings: { distance: number; crawl: number }[], model: CurveModel = 'ballistic'): CrawlFit {
   const r = fitCrawl(readings, model);
   if (!r.ok) throw new Error(r.reason);
   return r.fit;
@@ -118,7 +118,7 @@ describe('other curves', () => {
     const line = fitCrawl(ds.map((d) => ({ distance: d, crawl: 55 - 1.1 * d + (d % 2 ? 0.2 : -0.2) })), 'auto');
     expect(line.ok && line.fit.kind).toBe('linear');
     const folded = fitCrawl(ds.map((d) => ({ distance: d, crawl: exact(d) })), 'auto');
-    expect(folded.ok && folded.fit.kind).toBe('fold');
+    expect(folded.ok && folded.fit.kind).toBe('ballistic');
   });
 
   it('defaults to quadratic', () => {

@@ -8,7 +8,7 @@ const sample: AppState = {
   ...defaultState,
   distances: [30, 5, 18],
   readings: { 5: '26.5', 18: '39.5', 30: '26.5', 70: '1' },
-  curveModel: 'fold',
+  curveModel: 'ballistic',
   tickStyle: 'split',
   templateWidth: 42,
   plotMode: 'recorded',

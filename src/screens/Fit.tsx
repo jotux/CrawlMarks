@@ -10,8 +10,7 @@ const CURVES: Record<CurveModel, { name: string; formula?: string; about: string
   auto: { name: 'Auto', about: 'Picks the curve that best predicts each reading from the others.' },
   linear: { name: 'Linear', formula: 'a − c·d', about: 'A straight line: crawl shrinks evenly with distance.' },
   quadratic: { name: 'Quadratic', formula: 'a − c·d − e·d²', about: 'A smooth bend fitted to your readings, not a physical model. Can’t turn back up close.' },
-  // id stays 'fold' so saved setups and share links still load
-  fold: { name: 'Ballistic', formula: 'a − b/d − c·d', about: 'Eye height above the arrow plus gravity, without drag. Crawl peaks, then shrinks again up close.' },
+  ballistic: { name: 'Ballistic', formula: 'a − b/d − c·d', about: 'Eye height above the arrow plus gravity, without drag. Crawl peaks, then shrinks again up close.' },
   manual: { name: 'Manual (join the dots)', about: 'A smooth line through every reading. Errors in a reading are not smoothed out.' },
 };
 
@@ -173,7 +172,7 @@ export function Fit({ state, setState, result, readings }: {
           {' '}Check for typos, or reshoot {misses.length === 1 ? 'it' : 'them'}.
         </Tip>
       )}
-      {fold === null && fit.kind === 'fold' && <Tip tone="warn">No turn-back found yet. Add readings at a few shorter distances and fit again.</Tip>}
+      {fold === null && fit.kind === 'ballistic' && <Tip tone="warn">No turn-back found yet. Add readings at a few shorter distances and fit again.</Tip>}
 
       {pairs.length > 0 && (
         <div className="pairs">

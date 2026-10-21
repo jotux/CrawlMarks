@@ -8,22 +8,23 @@ export interface Reading {
 /**
  * Curves that can be fitted to the readings, d in metres:
  * - linear     crawl = a − c·d
- * - quadratic  crawl = a − c·d − e·d²   (the arrow slows as it flies, so crawl bends)
- * - fold       crawl = a − b/d − c·d    (rises to a peak, the fold, then shrinks up close)
+ * - quadratic  crawl = a − c·d − e·d²   (a smooth bend fitted to the readings, not a physical model)
+ * - ballistic  crawl = a − b/d − c·d    (eye height over the arrow plus gravity, no drag: rises to a
+ *                                        peak, the fold, then shrinks up close)
  * - manual     a smooth line through every reading that never overshoots between them
  * Any curve that peaks inside the readings has a fold, and every near distance then
  * shares its crawl with a far one on the other side of it.
  */
-export type CurveKind = 'linear' | 'quadratic' | 'fold' | 'manual';
+export type CurveKind = 'linear' | 'quadratic' | 'ballistic' | 'manual';
 export type CurveModel = 'auto' | CurveKind;
 
-export const CURVE_MODELS: CurveModel[] = ['auto', 'linear', 'quadratic', 'fold', 'manual'];
+export const CURVE_MODELS: CurveModel[] = ['auto', 'linear', 'quadratic', 'ballistic', 'manual'];
 export const DEFAULT_CURVE_MODEL: CurveModel = 'quadratic';
 export const isCurveModel = (x: unknown): x is CurveModel => CURVE_MODELS.includes(x as CurveModel);
 
 export interface CrawlFit {
   kind: CurveKind;
-  /** linear [a, c]; quadratic [a, c, e]; fold [a, b, c]; manual [] */
+  /** linear [a, c]; quadratic [a, c, e]; ballistic [a, b, c]; manual [] */
   p: number[];
   /** manual only: readings sorted by distance, with the slope of the line at each */
   knots?: { d: number[]; y: number[]; m: number[] };
@@ -40,7 +41,7 @@ export type FitResult = { ok: true; fit: CrawlFit } | { ok: false; reason: strin
 const BASIS: Record<Exclude<CurveKind, 'manual'>, (d: number) => number[]> = {
   linear: (d) => [1, -d],
   quadratic: (d) => [1, -d, -d * d],
-  fold: (d) => [1, -1 / d, -d],
+  ballistic: (d) => [1, -1 / d, -d],
 };
 
 export function crawlAt(fit: CrawlFit, d: number): number {
@@ -117,7 +118,7 @@ export function fitCrawl(readings: Reading[], model: CurveModel = DEFAULT_CURVE_
  */
 function fitAuto(readings: Reading[]): FitResult {
   let best: { result: FitResult; score: number } | null = null;
-  for (const kind of ['linear', 'quadratic', 'fold'] as const) {
+  for (const kind of ['linear', 'quadratic', 'ballistic'] as const) {
     if (readings.length - 1 < BASIS[kind](1).length) continue;
     const result = fitCrawl(readings, kind);
     if (!result.ok) continue;
@@ -186,7 +187,7 @@ function foldOf(fit: CrawlFit, readings: Reading[]): number | null {
   const [, p1, p2] = fit.p;
   switch (fit.kind) {
     case 'linear': return null;
-    case 'fold': return p1 > 0 ? Math.sqrt(p1 / p2) : null; // √(b/c)
+    case 'ballistic': return p1 > 0 ? Math.sqrt(p1 / p2) : null; // √(b/c)
     case 'quadratic': return p2 > 0 && p1 < 0 ? -p1 / (2 * p2) : null; // −c/(2e)
     case 'manual': {
       const { d, y } = fit.knots!;

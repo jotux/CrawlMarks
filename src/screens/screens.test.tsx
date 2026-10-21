@@ -12,7 +12,7 @@ import { Strip } from './Strip';
 const sample: AppState = {
   ...defaultState,
   tab: { hand: 'right', faceLength: 72, faceWidth: 38, zoneStart: 6, zoneEnd: 58 },
-  curveModel: 'fold',
+  curveModel: 'ballistic',
   readings: { 5: '26.5', 10: '41.5', 18: '39.5', 25: '32.5', 30: '26.5', 40: '13.5', 50: '0' },
 };
 const noop = () => {};
@@ -52,7 +52,7 @@ describe('screens', () => {
   });
 
   it('show the curve picker, on every curve', () => {
-    for (const curveModel of ['auto', 'linear', 'quadratic', 'fold', 'manual'] as const) {
+    for (const curveModel of ['auto', 'linear', 'quadratic', 'ballistic', 'manual'] as const) {
       const html = render({ ...sample, curveModel });
       expect(html.fit).toContain('id="curve-model"');
       expect(html.sheet).toContain('L1');
