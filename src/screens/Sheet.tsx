@@ -5,12 +5,12 @@ import { FitResult, Reading, crawlAt } from '../model/fit';
 import { Mark, buildMarks, nearLabels, recordedMarks } from '../model/marks';
 import { TickStyle, tickSegments } from '../model/tickStyles';
 import { TickStylePicker } from '../components/TickStylePicker';
-import { AppState, MINOR_RANGE, PlotMode, SCALE_MAX, clampTemplateWidth, fmtMetres, templateWidth, templateWidthRange } from '../state';
+import { AppState, Hand, MINOR_RANGE, PlotMode, SCALE_MAX, clampTemplateWidth, fmtMetres, templateWidth, templateWidthRange } from '../state';
 
-function LegendLine({ style, long }: { style: TickStyle; long: boolean }) {
+function LegendLine({ style, hand, long }: { style: TickStyle; hand: Hand; long: boolean }) {
   return (
     <svg width="32" height="4" viewBox="0 0 32 4" aria-hidden="true">
-      {tickSegments(style, long, 1).map(([a, b]) => <line key={a} x1={a * 32} x2={b * 32} y1="2" y2="2" style={{ stroke: 'var(--ink)' }} strokeWidth="1.5" />)}
+      {tickSegments(style, long, 1, { count: 1, hand }).map(([a, b]) => <line key={a} x1={a * 32} x2={b * 32} y1="2" y2="2" style={{ stroke: 'var(--ink)' }} strokeWidth="1.5" />)}
     </svg>
   );
 }
@@ -124,7 +124,7 @@ function TickStyleControl({ state, setState }: Controls) {
   return (
     <div className="card stepper">
       <div className="stepper-label">Tick style</div>
-      <TickStylePicker value={state.tickStyle} onChange={(s) => setState((st) => ({ ...st, tickStyle: s }))} />
+      <TickStylePicker value={state.tickStyle} hand={state.tab.hand} onChange={(s) => setState((st) => ({ ...st, tickStyle: s }))} />
     </div>
   );
 }
@@ -193,7 +193,7 @@ function SingleSheet({ state, setState, reading }: {
             <h2 className="label-caps">Tab face · 1:1</h2>
             <span className="muted mono tiny">{width} × {tab.faceLength} mm</span>
             <div className="legend">
-              <span><LegendLine style={state.tickStyle} long />{where}</span>
+              <span><LegendLine style={state.tickStyle} hand={state.tab.hand} long />{where}</span>
             </div>
           </div>
         </section>
@@ -295,11 +295,11 @@ export function Sheet({ state, setState, result, readings }: {
                 <span className="muted mono tiny">{width} × {tab.faceLength} mm</span>
                 <div className="legend">
                   {recorded ? (
-                    <span><LegendLine style={tickStyle} long />One line per recorded distance</span>
+                    <span><LegendLine style={tickStyle} hand={state.tab.hand} long />One line per recorded distance</span>
                   ) : (
                     <>
-                      <span><LegendLine style={tickStyle} long />Long line, every 5 m</span>
-                      <span><LegendLine style={tickStyle} long={false} />Short line, {minor} per gap</span>
+                      <span><LegendLine style={tickStyle} hand={state.tab.hand} long />Long line, every 5 m</span>
+                      <span><LegendLine style={tickStyle} hand={state.tab.hand} long={false} />Short line, {minor} per gap</span>
                     </>
                   )}
                 </div>

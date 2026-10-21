@@ -29,3 +29,26 @@ describe('tick styles', () => {
     expect(tickSegments('alternating', false, 1)).toEqual(tickSegments('alternating', false, 3));
   });
 });
+
+describe('newer tick styles', () => {
+  it('string side starts from the edge the strip reads from, flipping with the hand', () => {
+    expect(tickSegments('string-side', false, 1, { count: 4, hand: 'right' })).toEqual(tickSegments('left', false, 1));
+    expect(tickSegments('string-side', true, 0, { count: 4, hand: 'left' })).toEqual(tickSegments('right', true, 0));
+  });
+
+  it('staircase steps each short line across the tab, all the same length', () => {
+    const ctx = { count: 4, hand: 'right' as const };
+    const shorts = [1, 2, 3, 4].map((k) => tickSegments('staircase', false, k, ctx)[0]);
+    for (let i = 1; i < shorts.length; i++) expect(shorts[i][0]).toBeGreaterThan(shorts[i - 1][0]);
+    expect(shorts[0][0]).toBeCloseTo(0.1);
+    expect(shorts[3][1]).toBeCloseTo(0.9);
+    for (const [a, b] of shorts) expect(b - a).toBeCloseTo(0.2);
+    expect(tickSegments('staircase', false, 1, { count: 1, hand: 'right' })[0]).toEqual([0.4, 0.6]);
+  });
+
+  it('dot-dash short marks are tiny and centred', () => {
+    const [[a, b]] = tickSegments('dot-dash', false, 2);
+    expect(b - a).toBeLessThanOrEqual(0.12);
+    expect((a + b) / 2).toBeCloseTo(0.5);
+  });
+});

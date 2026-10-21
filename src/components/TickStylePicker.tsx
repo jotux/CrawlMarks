@@ -1,9 +1,10 @@
 import { KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
 import { TICK_STYLES, TickStyle } from '../model/tickStyles';
+import type { Hand } from '../state';
 import { TickPreview } from './drawings';
 
 /** A dropdown listbox whose options show what each tick style looks like. */
-export function TickStylePicker({ value, onChange }: { value: TickStyle; onChange: (s: TickStyle) => void }) {
+export function TickStylePicker({ value, hand, onChange }: { value: TickStyle; hand: Hand; onChange: (s: TickStyle) => void }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(() => TICK_STYLES.findIndex((s) => s.id === value));
   const root = useRef<HTMLDivElement>(null);
@@ -64,7 +65,7 @@ export function TickStylePicker({ value, onChange }: { value: TickStyle; onChang
         onClick={() => (open ? setOpen(false) : show())}
         onKeyDown={onButtonKey}
       >
-        <TickPreview style={current.id} />
+        <TickPreview style={current.id} hand={hand} />
         <span id={`${id}-value`} className="picker-name">{current.name}</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="picker-chevron"><path d="M6 9l6 6 6-6" /></svg>
       </button>
@@ -89,7 +90,7 @@ export function TickStylePicker({ value, onChange }: { value: TickStyle; onChang
               onPointerEnter={() => setActive(i)}
               onClick={() => choose(i)}
             >
-              <TickPreview style={s.id} />
+              <TickPreview style={s.id} hand={hand} />
               <span className="picker-text">
                 <span className="picker-name">{s.name}</span>
                 <span className="picker-desc">{s.description}</span>
