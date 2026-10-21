@@ -2,7 +2,7 @@
 
 CrawlMarks helps barebow archers make distance marks for their tab.
 
-**Try it:** https://jotux.github.io/CrawlMarks/
+**Try it:** https://www.crawlmarks.app
 
 Barebow archers aim by string walking: they move their hand down the string below the nock by a set amount (the "crawl") for each distance. Many mark these crawl positions on the tab face. CrawlMarks turns a few sight-in readings into a full set of tab marks and a key card that maps each mark to a distance.
 
@@ -54,6 +54,8 @@ Whether you can carry the key card varies by event, so check the rules for each 
 ## Standalone by design
 
 CrawlMarks needs no server, account or network connection. The build is a single `index.html` with its code, styles and fonts inlined. Open it from disk, put it on a USB stick, or host it on any static web server. Your tab size, readings and saved setups are kept in your browser's local storage and never leave your device unless you share a link.
+
+The hosted site at www.crawlmarks.app counts visits with Cloudflare Web Analytics, which uses no cookies and collects nothing you enter in the app. Cloudflare adds it when serving the page, so the build itself has no tracking and a copy run from disk sends nothing.
 
 Printing uses the browser's own print dialog, which can also save to PDF. The strip, tab template and key card print at true millimetre size, so always print at 100% scale.
 
