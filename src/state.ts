@@ -4,6 +4,29 @@ import { DEFAULT_TICK_STYLE, TickStyle, isTickStyle } from './model/tickStyles';
 
 export type Hand = 'right' | 'left';
 
+/** Metric: tab in mm, distances in metres. Imperial: tab in inches, distances in yards. */
+export type Units = 'metric' | 'imperial';
+export const isUnits = (v: unknown): v is Units => v === 'metric' || v === 'imperial';
+
+const MM_PER_IN = 25.4;
+const M_PER_YD = 0.9144;
+export const distanceUnit = (u: Units) => (u === 'imperial' ? 'yd' : 'm');
+export const lengthUnit = (u: Units) => (u === 'imperial' ? 'in' : 'mm');
+/** A tab measurement (kept in mm) in the chosen unit, to 2 decimal places. */
+export const toLength = (mm: number, u: Units) => Math.round((u === 'imperial' ? mm / MM_PER_IN : mm) * 100) / 100;
+/** A tab measurement typed in the chosen unit, back in mm. */
+export const fromLength = (v: number, u: Units) => (u === 'imperial' ? v * MM_PER_IN : v);
+export const fmtLength = (mm: number, u: Units) => `${toLength(mm, u)} ${lengthUnit(u)}`;
+/** width × length with the unit once, e.g. 38 × 72 mm */
+export const fmtSize = (w: number, h: number, u: Units) => `${toLength(w, u)} × ${toLength(h, u)} ${lengthUnit(u)}`;
+/** A distance without its unit: whole numbers plain, others to one decimal place. */
+export const fmtDistanceNumber = (d: number) => `${Math.abs(d - Math.round(d)) < 0.05 ? Math.round(d) : d.toFixed(1)}`;
+export const fmtDistance = (d: number, u: Units) => `${fmtDistanceNumber(d)} ${distanceUnit(u)}`;
+/** Farthest distance that can be added, in the chosen unit (about 150 m either way). */
+export const MAX_DISTANCE: Record<Units, number> = { metric: 150, imperial: 165 };
+/** Distances a new setup starts with. */
+export const DEFAULT_DISTANCES: Record<Units, number[]> = { metric: [5, 10, 18, 25, 30, 40, 50], imperial: [10, 15, 20, 30, 40, 50, 60] };
+
 /** What the marker sheet draws: lines from the fitted curve every 5 m, or only the recorded distances. */
 export type PlotMode = 'curve' | 'recorded';
 export const isPlotMode = (v: unknown): v is PlotMode => v === 'curve' || v === 'recorded';
@@ -18,8 +41,9 @@ export interface TabSpec {
 }
 
 export interface AppState {
+  units: Units;
   tab: TabSpec;
-  /** metres, in the order the readings list shows them (nearest first unless reordered) */
+  /** metres or yards (see units), in the order the readings list shows them (nearest first unless reordered) */
   distances: number[];
   /** raw text typed per distance, keyed by distance: strip units, 0 at the top of the zone, SCALE_MAX at the bottom */
   readings: Record<string, string>;
@@ -39,8 +63,9 @@ export const templateWidthRange = (tab: TabSpec) => ({ min: 10, max: Math.max(10
 export const SCALE_MAX = 50;
 
 export const defaultState: AppState = {
+  units: 'metric',
   tab: { hand: 'right', faceLength: 60, faceWidth: 24, zoneStart: 6, zoneEnd: 54 },
-  distances: [5, 10, 18, 25, 30, 40, 50],
+  distances: DEFAULT_DISTANCES.metric,
   readings: {},
   minorMarks: 4,
   tickStyle: DEFAULT_TICK_STYLE,
@@ -55,6 +80,7 @@ function merge(saved: Partial<AppState>): AppState {
   return {
     ...defaultState,
     ...saved,
+    units: isUnits(saved.units) ? saved.units : 'metric',
     tab: { ...defaultState.tab, ...saved.tab },
     readings: { ...saved.readings },
     tickStyle: isTickStyle(saved.tickStyle) ? saved.tickStyle : DEFAULT_TICK_STYLE,
@@ -87,7 +113,7 @@ export function useAppState() {
 
 export const clampTemplateWidth = (tab: TabSpec, n: number) => {
   const { min, max } = templateWidthRange(tab);
-  return Math.min(max, Math.max(min, Math.round(n)));
+  return Math.min(max, Math.max(min, Math.round(n * 10) / 10));
 };
 
 /** Width the final tab template is drawn at, kept inside templateWidthRange. */
@@ -107,26 +133,28 @@ export function parseNum(text: string): number | null {
 export type TabField = 'faceLength' | 'faceWidth' | 'zoneStart' | 'zoneEnd';
 
 /** What is wrong with each tab measurement, shown under its field. */
-export function tabFieldErrors(tab: TabSpec): Partial<Record<TabField, string>> {
+export function tabFieldErrors(tab: TabSpec, units: Units = 'metric'): Partial<Record<TabField, string>> {
   const { faceLength, faceWidth, zoneStart, zoneEnd } = tab;
+  const len = (mm: number) => fmtLength(mm, units);
   const out: Partial<Record<TabField, string>> = {};
-  if (!(faceLength >= 20 && faceLength <= 200)) out.faceLength = 'Between 20 and 200 mm';
-  if (!(faceWidth >= 10 && faceWidth <= 120)) out.faceWidth = 'Between 10 and 120 mm';
+  if (!(faceLength >= 20 && faceLength <= 200)) out.faceLength = `Between ${len(20)} and ${len(200)}`;
+  if (!(faceWidth >= 10 && faceWidth <= 120)) out.faceWidth = `Between ${len(10)} and ${len(120)}`;
   if (!(zoneStart >= 0)) out.zoneStart = 'Can’t start above the top edge';
-  else if (!(zoneStart < faceLength)) out.zoneStart = `Must start within the ${faceLength} mm face`;
-  if (!(zoneEnd <= faceLength)) out.zoneEnd = `Can’t go past the ${faceLength} mm face length`;
-  else if (!(zoneEnd > zoneStart + 5)) out.zoneEnd = 'At least 5 mm below where it starts';
+  else if (!(zoneStart < faceLength)) out.zoneStart = `Must start within the ${len(faceLength)} face`;
+  if (!(zoneEnd <= faceLength)) out.zoneEnd = `Can’t go past the ${len(faceLength)} face length`;
+  else if (!(zoneEnd > zoneStart + 5)) out.zoneEnd = `At least ${len(5)} below where it starts`;
   return out;
 }
 
 export function setupProblems(state: AppState): string[] {
   const { faceLength, faceWidth, zoneStart, zoneEnd } = state.tab;
   const out: string[] = [];
-  if (!(faceLength >= 20 && faceLength <= 200)) out.push('Face length should be between 20 and 200 mm.');
-  if (!(faceWidth >= 10 && faceWidth <= 120)) out.push('Face width should be between 10 and 120 mm.');
+  const len = (mm: number) => fmtLength(mm, state.units);
+  if (!(faceLength >= 20 && faceLength <= 200)) out.push(`Face length should be between ${len(20)} and ${len(200)}.`);
+  if (!(faceWidth >= 10 && faceWidth <= 120)) out.push(`Face width should be between ${len(10)} and ${len(120)}.`);
   if (!(zoneStart >= 0)) out.push('The marking zone can’t start above the top edge.');
-  if (!(zoneEnd > zoneStart + 5)) out.push('The marking zone needs to be at least 5 mm tall.');
-  if (!(zoneEnd <= faceLength)) out.push(`The marking zone can’t go past the ${faceLength} mm face length.`);
+  if (!(zoneEnd > zoneStart + 5)) out.push(`The marking zone needs to be at least ${len(5)} tall.`);
+  if (!(zoneEnd <= faceLength)) out.push(`The marking zone can’t go past the ${len(faceLength)} face length.`);
   if (state.distances.length < 1) out.push('Pick at least one distance.');
   return out;
 }
@@ -190,6 +218,19 @@ export function validReadings(state: AppState): Reading[] {
     .map((r) => ({ distance: r.distance, crawl: r.value }));
 }
 
-export function fmtMetres(d: number): string {
-  return `${Math.abs(d - Math.round(d)) < 0.05 ? Math.round(d) : d.toFixed(1)} m`;
+/**
+ * Switches units. Tab sizes are kept in mm, so only distances change: with no readings
+ * yet they become the new unit's usual distances; otherwise each is converted, keeping its reading.
+ */
+export function withUnits(state: AppState, units: Units): AppState {
+  if (state.units === units) return state;
+  if (validReadings(state).length === 0) return { ...state, units, distances: DEFAULT_DISTANCES[units], readings: {} };
+  const factor = units === 'imperial' ? 1 / M_PER_YD : M_PER_YD;
+  const convert = (d: number) => Math.round(d * factor * 10) / 10;
+  const readings: Record<string, string> = {};
+  for (const d of state.distances) {
+    const text = state.readings[d];
+    if (text !== undefined) readings[convert(d)] = text;
+  }
+  return { ...state, units, distances: [...new Set(state.distances.map(convert))], readings };
 }

@@ -1,6 +1,6 @@
 import { NextLink, PrintButton, Screen } from '../components/Screen';
 import { LogoImage, ScaleBar, StripDrawing } from '../components/drawings';
-import { AppState, SCALE_MAX, TabSpec, fmtMetres, zoneLength } from '../state';
+import { AppState, SCALE_MAX, TabSpec, Units, fmtDistance, fmtLength, fmtSize, toLength, zoneLength } from '../state';
 import { tickStep } from '../model/strip';
 
 const STEPS_TEXT = [
@@ -9,8 +9,14 @@ const STEPS_TEXT = [
   'Shoot each distance until grouped, then read the line under your crawl.',
 ];
 
-const summary = (tab: TabSpec) =>
-  `${tab.faceLength} × ${tab.faceWidth} mm · ${tab.hand} hand · zone ${tab.zoneStart}–${tab.zoneEnd} mm`;
+const summary = (tab: TabSpec, u: Units) =>
+  `${fmtSize(tab.faceLength, tab.faceWidth, u)} · ${tab.hand} hand · zone ${toLength(tab.zoneStart, u)}–${fmtLength(tab.zoneEnd, u)}`;
+
+/** The bar printed for checking the scale with a ruler: 50 mm, or 2 in for imperial rulers. */
+const SCALE_CHECK: Record<Units, { length: number; label: string }> = {
+  metric: { length: 50, label: '50 mm' },
+  imperial: { length: 50.8, label: '2 in' },
+};
 
 const scaleNote = (tab: TabSpec) => {
   const step = tickStep(zoneLength(tab), SCALE_MAX);
@@ -39,8 +45,8 @@ function StripPreview({ tab }: { tab: TabSpec }) {
 const SPARE_ROWS = 3;
 
 /** Printed table for writing down the strip reading at each distance while sighting in. */
-function ReadingsTable({ distances }: { distances: number[] }) {
-  const rows = [...distances.map(fmtMetres), ...Array<string>(SPARE_ROWS).fill('')];
+function ReadingsTable({ distances, units }: { distances: number[]; units: Units }) {
+  const rows = [...distances.map((d) => fmtDistance(d, units)), ...Array<string>(SPARE_ROWS).fill('')];
   return (
     <table className="record-table">
       <thead>
@@ -54,13 +60,14 @@ function ReadingsTable({ distances }: { distances: number[] }) {
 }
 
 export function Strip({ state }: { state: AppState }) {
-  const { tab } = state;
+  const { tab, units } = state;
+  const check = SCALE_CHECK[units];
   return (
     <>
       <Screen
         step={1}
         title="Print & stick"
-        intro="Print at 100% scale. Check the 50 mm bar with a ruler before cutting."
+                intro={`Print at 100% scale. Check the ${check.label} bar with a ruler before cutting.`}
         footer={<NextLink to="readings">I've shot my distances</NextLink>}
       >
         <div className="card strip-card">
@@ -69,12 +76,12 @@ export function Strip({ state }: { state: AppState }) {
             <div className="strip-logo"><LogoImage width={45} /></div>
             <div>
               <h2 className="label-caps">Strip</h2>
-              <p className="muted">{summary(tab)}</p>
+              <p className="muted">{summary(tab, units)}</p>
               <p className="muted">{scaleNote(tab)}</p>
             </div>
             <div>
               <h2 className="label-caps">Scale check</h2>
-              <p className="muted small">The printed page has a 50 mm bar. Measure it before you cut.</p>
+              <p className="muted small">The printed page has a {check.label} bar. Measure it before you cut.</p>
             </div>
             <div>
               <h2 className="label-caps">Readings table</h2>
@@ -89,15 +96,15 @@ export function Strip({ state }: { state: AppState }) {
       <section className="print-only print-page">
         <LogoImage width={45} trueSize />
         <h1>Sight-in strip</h1>
-        <p>{summary(tab)} · {scaleNote(tab)}</p>
+        <p>{summary(tab, units)} · {scaleNote(tab)}</p>
         <div className="print-row">
           <StripDrawing tab={tab} trueSize />
           <div className="print-notes">
-            <div className="print-scale"><ScaleBar trueSize /><span>this bar = 50 mm</span></div>
+            <div className="print-scale"><ScaleBar length={check.length} label={check.label} trueSize /><span>this bar = {check.label}</span></div>
             <ol>{STEPS_TEXT.map((s) => <li key={s}>{s}</li>)}</ol>
             <div>
               <h2>Your readings</h2>
-              <ReadingsTable distances={state.distances} />
+              <ReadingsTable distances={state.distances} units={units} />
             </div>
           </div>
         </div>

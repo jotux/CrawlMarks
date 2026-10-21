@@ -24,7 +24,7 @@ export interface MarkOptions {
 const EPS = 1e-9;
 
 /**
- * Lines for the far branch of the curve: a long line every 5 m and `minor`
+ * Lines for the far branch of the curve: a long line every 5 m (or yd) and `minor`
  * evenly spaced short lines between neighbours. Lines outside the marking zone
  * are dropped.
  */

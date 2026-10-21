@@ -1,5 +1,6 @@
 import { useId } from 'react';
-import type { TabSpec } from '../state';
+import type { TabSpec, Units } from '../state';
+import { fmtLength } from '../state';
 
 // Screen-only explainer, drawn in px. The tab itself is a simple picture of a real barebow tab
 // (leather face, plate, ruler strip), so its colours are fixed;
@@ -55,7 +56,8 @@ function TabPicture({ w, h, mm, id }: { w: number; h: number; mm: number; id: st
 }
 
 /** Where each setup measurement is taken on the tab face, drawn from the current numbers. */
-export function TabDiagram({ tab }: { tab: TabSpec }) {
+export function TabDiagram({ tab, units }: { tab: TabSpec; units: Units }) {
+  const len = (mm: number) => fmtLength(mm, units);
   // the diagram can be on the page twice (narrow and wide layouts), so gradient ids must be unique
   const id = `tab${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const length = Math.max(tab.faceLength, 1);
@@ -73,7 +75,7 @@ export function TabDiagram({ tab }: { tab: TabSpec }) {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="tab-diagram" role="img"
-      aria-label={`Tab face ${tab.faceLength} by ${tab.faceWidth} mm. Measure everything down from the top edge, under your nock: the marking zone runs from ${tab.zoneStart} to ${tab.zoneEnd} mm.`}>
+      aria-label={`Tab face ${len(tab.faceLength)} by ${len(tab.faceWidth)}. Measure everything down from the top edge, under your nock: the marking zone runs from ${len(tab.zoneStart)} to ${len(tab.zoneEnd)}.`}>
       <defs>
         <linearGradient id={`${id}-leather`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#4A2A26" />
@@ -105,13 +107,13 @@ export function TabDiagram({ tab }: { tab: TabSpec }) {
       {/* face length, down the outside */}
       <Dim x1={LEFT - 16} y1={TOP} x2={LEFT - 16} y2={bottom} />
       <text transform={`translate(${LEFT - 26} ${TOP + h / 2}) rotate(-90)`} className="diagram-label" textAnchor="middle" style={ink}>
-        Face length · <tspan className="mono">{tab.faceLength} mm</tspan>
+        Face length · <tspan className="mono">{len(tab.faceLength)}</tspan>
       </text>
 
       {/* face width, under the leather only */}
       <Dim x1={faceX} y1={bottom + 16} x2={faceX + w} y2={bottom + 16} />
       <text x={faceX + w / 2} y={bottom + 32} className="diagram-label" textAnchor="middle" style={ink}>
-        Face width · <tspan className="mono">{tab.faceWidth} mm</tspan>
+        Face width · <tspan className="mono">{len(tab.faceWidth)}</tspan>
       </text>
 
       {/* marking zone, both measured from the top edge */}
@@ -120,10 +122,10 @@ export function TabDiagram({ tab }: { tab: TabSpec }) {
       <line x1={faceX + w} x2={lx - 4} y1={zs} y2={zs} style={{ stroke: 'var(--teal)' }} strokeDasharray="2 2" opacity="0.7" />
       <line x1={faceX + w} x2={lx - 4} y1={ze} y2={ze} style={{ stroke: 'var(--teal)' }} strokeDasharray="2 2" opacity="0.7" />
       <text x={lx} y={zs} className="diagram-label" dominantBaseline="central" style={ink}>
-        Zone starts · <tspan className="mono">{tab.zoneStart} mm</tspan>
+        Zone starts · <tspan className="mono">{len(tab.zoneStart)}</tspan>
       </text>
       <text x={lx} y={Math.max(ze, zs + 16)} className="diagram-label" dominantBaseline="central" style={ink}>
-        Zone ends · <tspan className="mono">{tab.zoneEnd} mm</tspan>
+        Zone ends · <tspan className="mono">{len(tab.zoneEnd)}</tspan>
       </text>
     </svg>
   );

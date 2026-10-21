@@ -1,6 +1,6 @@
 import { Dispatch, FormEvent, SetStateAction, useRef, useState } from 'react';
 import { NextLink, Screen, Tip } from '../components/Screen';
-import { AppState, SCALE_MAX, parseNum, readingRows, validReadings, withDistance, withDistanceAt, withReading, withoutDistance } from '../state';
+import { AppState, MAX_DISTANCE, SCALE_MAX, distanceUnit, fmtDistance, parseNum, readingRows, validReadings, withDistance, withDistanceAt, withReading, withoutDistance } from '../state';
 
 export function Readings({ state, setState }: { state: AppState; setState: Dispatch<SetStateAction<AppState>> }) {
   const [adding, setAdding] = useState('');
@@ -15,7 +15,7 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
   const addDistance = (e: FormEvent) => {
     e.preventDefault();
     const d = parseNum(adding);
-    if (d === null || d <= 0 || d > 150) return;
+    if (d === null || d <= 0 || d > MAX_DISTANCE[state.units]) return;
     setState((s) => withDistance(s, d));
     setAdding('');
   };
@@ -62,7 +62,7 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
             <div className={`table-row${dragging === r.distance ? ' dragging' : ''}`} key={r.distance} data-distance={r.distance}>
               <button
                 className="drag-handle"
-                aria-label={`Move ${r.distance} m. Drag, or use the arrow keys.`}
+                aria-label={`Move ${fmtDistance(r.distance, state.units)}. Drag, or use the arrow keys.`}
                 onPointerDown={(e) => {
                   e.preventDefault();
                   e.currentTarget.setPointerCapture(e.pointerId);
@@ -82,10 +82,10 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
                   {[6, 12, 18].map((y) => [9, 15].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />))}
                 </svg>
               </button>
-              <span className="distance">{r.distance} m</span>
+              <span className="distance">{fmtDistance(r.distance, state.units)}</span>
               <div>
                 <label className={`field-box compact${r.error ? ' invalid' : ''}`}>
-                  <span className="sr-only">Reading at {r.distance} m</span>
+                  <span className="sr-only">Reading at {fmtDistance(r.distance, state.units)}</span>
                   <input
                     inputMode="decimal"
                     placeholder="—"
@@ -103,7 +103,7 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
               >
                 {pointOn ? 'Point-on' : 'Mark'}
               </button>
-              <button className="row-delete" aria-label={`Delete ${r.distance} m`} onClick={() => setState((s) => withoutDistance(s, r.distance))}>
+              <button className="row-delete" aria-label={`Delete ${fmtDistance(r.distance, state.units)}`} onClick={() => setState((s) => withoutDistance(s, r.distance))}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
@@ -112,9 +112,9 @@ export function Readings({ state, setState }: { state: AppState; setState: Dispa
         </div>
         <form className="add-row" onSubmit={addDistance}>
           <label className="field-box compact">
-            <span className="sr-only">New distance in metres</span>
+            <span className="sr-only">New distance in {state.units === 'imperial' ? 'yards' : 'metres'}</span>
             <input inputMode="decimal" placeholder="Add a distance" value={adding} onChange={(e) => setAdding(e.target.value)} />
-            <span className="unit">m</span>
+            <span className="unit">{distanceUnit(state.units)}</span>
           </label>
           <button className="btn-text" type="submit">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>

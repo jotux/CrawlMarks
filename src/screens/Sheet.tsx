@@ -5,7 +5,7 @@ import { FitResult, Reading, crawlAt } from '../model/fit';
 import { Mark, buildMarks, nearLabels, recordedMarks } from '../model/marks';
 import { TickStyle, tickSegments } from '../model/tickStyles';
 import { TickStylePicker } from '../components/TickStylePicker';
-import { AppState, Hand, MINOR_RANGE, PlotMode, SCALE_MAX, clampTemplateWidth, fmtMetres, templateWidth, templateWidthRange } from '../state';
+import { AppState, Hand, MINOR_RANGE, PlotMode, SCALE_MAX, Units, clampTemplateWidth, distanceUnit, fmtDistance, fmtLength, fmtSize, fromLength, lengthUnit, templateWidth, templateWidthRange, toLength } from '../state';
 
 function LegendLine({ style, hand, long }: { style: TickStyle; hand: Hand; long: boolean }) {
   return (
@@ -15,8 +15,8 @@ function LegendLine({ style, hand, long }: { style: TickStyle; hand: Hand; long:
   );
 }
 
-function Stepper({ label, note, value, unit, min, max, less, more, onChange }: {
-  label: string; note: string; value: number; unit?: string; min: number; max: number;
+function Stepper({ label, note, value, unit, min, max, step = 1, less, more, onChange }: {
+  label: string; note: string; value: number; unit?: string; min: number; max: number; step?: number;
   less: string; more: string; onChange: (n: number) => void;
 }) {
   return (
@@ -26,11 +26,11 @@ function Stepper({ label, note, value, unit, min, max, less, more, onChange }: {
         <div className="muted mono small">{note}</div>
       </div>
       <div className="stepper-controls">
-        <button aria-label={less} disabled={value <= min} onClick={() => onChange(value - 1)}>
+        <button aria-label={less} disabled={value <= min} onClick={() => onChange(value - step)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M5 12h14" /></svg>
         </button>
         <output aria-live="polite">{value}{unit && <span className="stepper-unit">{unit}</span>}</output>
-        <button aria-label={more} disabled={value >= max} onClick={() => onChange(value + 1)}>
+        <button aria-label={more} disabled={value >= max} onClick={() => onChange(value + step)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
         </button>
       </div>
@@ -129,19 +129,20 @@ function TickStyleControl({ state, setState }: Controls) {
   );
 }
 
-const PLOT_MODES: { id: PlotMode; label: string; note: string }[] = [
-  { id: 'curve', label: 'Every 5 m', note: 'Lines from your curve, a long one every 5 m with short ones between.' },
+const plotModes = (u: Units): { id: PlotMode; label: string; note: string }[] => [
+  { id: 'curve', label: `Every 5 ${distanceUnit(u)}`, note: `Lines from your curve, a long one every 5 ${distanceUnit(u)} with short ones between.` },
   { id: 'recorded', label: 'Recorded only', note: 'One line for each distance you recorded, at your reading. Nothing in between.' },
 ];
 
 /** Whether the tab gets the fitted curve's lines or only the recorded distances. */
 function PlotModeControl({ state, setState }: Controls) {
-  const mode = PLOT_MODES.find((m) => m.id === state.plotMode) ?? PLOT_MODES[0];
+  const modes = plotModes(state.units);
+  const mode = modes.find((m) => m.id === state.plotMode) ?? modes[0];
   return (
     <div className="card plot-mode">
       <div className="stepper-label" id="plot-mode-label">Lines on the tab</div>
       <div className="segmented" role="group" aria-labelledby="plot-mode-label">
-        {PLOT_MODES.map((m) => (
+        {modes.map((m) => (
           <button key={m.id} aria-pressed={m.id === mode.id} onClick={() => setState((s) => ({ ...s, plotMode: m.id }))}>{m.label}</button>
         ))}
       </div>
@@ -152,11 +153,14 @@ function PlotModeControl({ state, setState }: Controls) {
 
 /** Width of the final tab template, shared by both kinds of sheet. */
 function WidthControl({ state, setState }: Controls) {
+  const { units } = state;
   const widthRange = templateWidthRange(state.tab);
-  const setWidth = (n: number) => setState((s) => ({ ...s, templateWidth: clampTemplateWidth(s.tab, n) }));
+  // kept in mm; shown and stepped in the chosen unit (1 mm, or 0.05 in)
+  const setWidth = (n: number) => setState((s) => ({ ...s, templateWidth: clampTemplateWidth(s.tab, fromLength(n, units)) }));
   return (
-    <Stepper label="Tab face width" note={`${widthRange.min}–${widthRange.max} mm · strip is ${state.tab.faceWidth} mm`}
-      value={templateWidth(state)} unit="mm" min={widthRange.min} max={widthRange.max}
+    <Stepper label="Tab face width" note={`${fmtLength(widthRange.min, units)}–${fmtLength(widthRange.max, units)} · strip is ${fmtLength(state.tab.faceWidth, units)}`}
+      value={toLength(templateWidth(state), units)} unit={lengthUnit(units)} step={units === 'imperial' ? 0.05 : 1}
+      min={toLength(widthRange.min, units)} max={toLength(widthRange.max, units)}
       less="Narrower tab face" more="Wider tab face" onChange={setWidth} />
   );
 }
@@ -170,13 +174,13 @@ function SingleSheet({ state, setState, reading }: {
   const width = templateWidth(state);
   const tab = { ...state.tab, faceWidth: width };
   const marks: Mark[] = [{ distance: reading.distance, crawl: reading.crawl, long: true, minor: 0, id: 'L1' }];
-  const where = `${fmtMetres(reading.distance)} · strip reading ${reading.crawl}`;
+  const where = `${fmtDistance(reading.distance, state.units)} · strip reading ${reading.crawl}`;
   return (
     <>
       <Screen
         step={4}
         title="Single-distance tab"
-        intro={`One line on the tab for ${fmtMetres(reading.distance)}, for a fixed distance such as indoors. No curve needed.`}
+        intro={`One line on the tab for ${fmtDistance(reading.distance, state.units)}, for a fixed distance such as indoors. No curve needed.`}
         footer={<PrintButton label="Print or save as PDF" />}
         back="readings"
         asideFirst
@@ -191,7 +195,7 @@ function SingleSheet({ state, setState, reading }: {
           <TemplatePreview state={state} marks={marks} />
           <div className="template-info">
             <h2 className="label-caps">Tab face · 1:1</h2>
-            <span className="muted mono tiny">{width} × {tab.faceLength} mm</span>
+            <span className="muted mono tiny">{fmtSize(width, tab.faceLength, state.units)}</span>
             <div className="legend">
               <span><LegendLine style={state.tickStyle} hand={state.tab.hand} long />{where}</span>
             </div>
@@ -254,7 +258,7 @@ export function Sheet({ state, setState, result, readings }: {
     setState((s) => ({ ...s, minorMarks: Math.min(MINOR_RANGE.max, Math.max(MINOR_RANGE.min, n)) }));
   const step = 5 / (minor + 1);
   const keyCard = (trueSize?: boolean) => (
-    <KeyCard tab={tab} marks={marks} style={tickStyle} near={near} foldCrawl={foldCrawl} foldDistance={fit?.fold ?? null} trueSize={trueSize} />
+    <KeyCard tab={tab} units={state.units} marks={marks} style={tickStyle} near={near} foldCrawl={foldCrawl} foldDistance={fit?.fold ?? null} trueSize={trueSize} />
   );
 
   return (
@@ -273,7 +277,7 @@ export function Sheet({ state, setState, result, readings }: {
             <PlotModeControl state={state} setState={setState} />
 
             {!recorded && (
-              <Stepper label="Small marks between" note={`≈ ${step.toFixed(minor >= 4 ? 2 : 1)} m per mark`}
+              <Stepper label="Small marks between" note={`≈ ${step.toFixed(minor >= 4 ? 2 : 1)} ${distanceUnit(state.units)} per mark`}
                 value={minor} min={MINOR_RANGE.min} max={MINOR_RANGE.max}
                 less="Fewer small marks" more="More small marks" onChange={setMinor} />
             )}
@@ -284,7 +288,7 @@ export function Sheet({ state, setState, result, readings }: {
       >
         {marks.length === 0 ? (
           <Tip tone="warn">
-            {recorded ? 'None of your readings fall inside the marking zone.' : 'None of the 5 m lines fall inside your marking zone.'} Check the zone on the first screen.
+            {recorded ? 'None of your readings fall inside the marking zone.' : `None of the 5 ${distanceUnit(state.units)} lines fall inside your marking zone.`} Check the zone on the first screen.
           </Tip>
         ) : (
           <>
@@ -292,13 +296,13 @@ export function Sheet({ state, setState, result, readings }: {
               <TemplatePreview state={state} marks={marks} />
               <div className="template-info">
                 <h2 className="label-caps">Tab face · 1:1</h2>
-                <span className="muted mono tiny">{width} × {tab.faceLength} mm</span>
+                <span className="muted mono tiny">{fmtSize(width, tab.faceLength, state.units)}</span>
                 <div className="legend">
                   {recorded ? (
                     <span><LegendLine style={tickStyle} hand={state.tab.hand} long />One line per recorded distance</span>
                   ) : (
                     <>
-                      <span><LegendLine style={tickStyle} hand={state.tab.hand} long />Long line, every 5 m</span>
+                      <span><LegendLine style={tickStyle} hand={state.tab.hand} long />Long line, every 5 {distanceUnit(state.units)}</span>
                       <span><LegendLine style={tickStyle} hand={state.tab.hand} long={false} />Short line, {minor} per gap</span>
                     </>
                   )}

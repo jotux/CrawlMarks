@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { QrCode, SetupControl, SetupsApi, SetupsProvider } from '../components/Setups';
 import { fitCrawl } from '../model/fit';
-import { AppState, defaultState, validReadings, withReading } from '../state';
+import { AppState, defaultState, validReadings, withReading, withUnits } from '../state';
 import { Fit } from './Fit';
 import { Readings } from './Readings';
 import { Setup } from './Setup';
@@ -146,6 +146,30 @@ describe('screens', () => {
     expect(setup).toContain('90 m');
     expect(defaultState.tab).toMatchObject({ faceLength: 60, faceWidth: 24 });
     expect(setup).not.toContain('field-box invalid');
+  });
+
+  it('show inches and yards when set to imperial', () => {
+    const imperial = withUnits(sample, 'imperial');
+    const html = render(imperial);
+    expect(html.setup).toContain('aria-pressed="true">Imperial · in, yd');
+    expect(html.setup).toContain('2.83');
+    expect(html.setup).toContain('>in<');
+    expect(html.setup).toContain('100 yd');
+    expect(html.strip).toContain('this bar = 2 in');
+    expect(html.readings).toContain('19.7 yd');
+    expect(html.sheet).toContain('Every 5 yd');
+    expect(html.sheet).toContain('1.5 × 2.83 in');
+    expect(html.sheet).not.toMatch(/\d m</);
+  });
+
+  it('switch units: fresh setups get the new defaults, readings keep their converted distances', () => {
+    const fresh = withUnits(defaultState, 'imperial');
+    expect(fresh.distances).toEqual([10, 15, 20, 30, 40, 50, 60]);
+    expect(fresh.tab).toEqual(defaultState.tab);
+    const converted = withUnits(sample, 'imperial');
+    expect(converted.distances).toContain(19.7);
+    expect(converted.readings['19.7']).toBe('39.5');
+    expect(withUnits(converted, 'metric').readings['18']).toBe('39.5');
   });
 
   it('explain what is missing before there are readings', () => {

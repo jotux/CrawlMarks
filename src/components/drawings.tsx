@@ -1,8 +1,8 @@
 // Everything here is drawn in millimetres. On screen the SVGs scale to their
 // container; with `trueSize` they carry real mm dimensions so they print 1:1.
 // Crawls arrive in strip units (0–SCALE_MAX across the zone) and are placed with unitsToMm.
-import type { TabSpec } from '../state';
-import { SCALE_MAX, fmtMetres, unitsToMm, zoneLength } from '../state';
+import type { TabSpec, Units } from '../state';
+import { SCALE_MAX, distanceUnit, fmtDistance, fmtDistanceNumber, unitsToMm, zoneLength } from '../state';
 import type { Mark, NearLabel } from '../model/marks';
 import { stripTicks, tickStep } from '../model/strip';
 import { TickContext, TickStyle, tickSegments } from '../model/tickStyles';
@@ -150,10 +150,11 @@ export function StripDrawing({ tab, trueSize }: { tab: TabSpec; trueSize?: boole
   );
 }
 
-export function ScaleBar({ trueSize }: { trueSize?: boolean }) {
+/** A bar `length` mm long for checking the print scale with a ruler. */
+export function ScaleBar({ length = 50, label = '50 mm', trueSize }: { length?: number; label?: string; trueSize?: boolean }) {
   return (
-    <svg viewBox="0 0 50 2" {...size(50, 2, trueSize)} role="img" aria-label="50 millimetre scale bar" preserveAspectRatio="none">
-      <rect x="0" y="0" width="50" height="2" fill="#17201B" />
+    <svg viewBox={`0 0 ${length} 2`} {...size(length, 2, trueSize)} role="img" aria-label={`${label} scale bar`} preserveAspectRatio="none">
+      <rect x="0" y="0" width={length} height="2" fill="#17201B" />
     </svg>
   );
 }
@@ -190,8 +191,9 @@ export const keyCardScale = (tab: TabSpec) => Math.min(3, (PLOT_BOTTOM - PLOT_TO
  * ones on the right. Line spacing is proportional to the tab; the tab drawing
  * itself is narrowed so the labels fit.
  */
-export function KeyCard({ tab, marks, style, near, foldCrawl, foldDistance, trueSize }: {
+export function KeyCard({ tab, units, marks, style, near, foldCrawl, foldDistance, trueSize }: {
   tab: TabSpec;
+  units: Units;
   style: TickStyle;
   marks: Mark[];
   near: NearLabel[];
@@ -232,7 +234,7 @@ export function KeyCard({ tab, marks, style, near, foldCrawl, foldDistance, true
         <>
           <line x1={TAB_X + 0.8} x2={TAB_X + TAB_W - 0.8} y1={y(foldCrawl)} y2={y(foldCrawl)} stroke="#9A3412" strokeWidth={0.25} strokeDasharray="1 0.6" />
           <text x={NEAR_RIGHT} y={y(foldCrawl)} className="svg-sans" fontSize={1.5} fontWeight={600} fill="#9A3412" textAnchor="end" dominantBaseline="central">
-            FOLD {foldDistance?.toFixed(0)} m
+            FOLD {foldDistance?.toFixed(0)} {distanceUnit(units)}
           </text>
         </>
       )}
@@ -243,17 +245,17 @@ export function KeyCard({ tab, marks, style, near, foldCrawl, foldDistance, true
         <g key={m.id}>
           <rect x={FAR_X} y={yy - 1.3} width={6} height={2.6} rx={0.8} fill="#17201B" />
           <text x={FAR_X + 3} y={yy} className="svg-mono" fontSize={1.8} fontWeight={600} fill="#FFFFFF" textAnchor="middle" dominantBaseline="central">{m.id}</text>
-          <text x={FAR_X + 7} y={yy} className="svg-mono" fontSize={2} fontWeight={600} fill="#0A3F3E" dominantBaseline="central">{m.alsoFor ? `${[m.distance, ...m.alsoFor].map((d) => fmtMetres(d).replace(' m', '')).join(' · ')} m` : fmtMetres(m.distance)}</text>
+          <text x={FAR_X + 7} y={yy} className="svg-mono" fontSize={2} fontWeight={600} fill="#0A3F3E" dominantBaseline="central">{m.alsoFor ? `${[m.distance, ...m.alsoFor].map(fmtDistanceNumber).join(' · ')} ${distanceUnit(units)}` : fmtDistance(m.distance, units)}</text>
         </g>
       ) : (
         <text key={m.id} x={FAR_X + 1.2} y={yy} className="svg-mono" fontSize={1.5} fill="#4A5650" dominantBaseline="central">
-          ·{m.id.split('·')[1]} {fmtMetres(m.distance)}
+          ·{m.id.split('·')[1]} {fmtDistance(m.distance, units)}
         </text>
       ))}
       {nearShown.map((n) => (
         <g key={n.distance}>
           <text x={NEAR_RIGHT - 1.4} y={y(n.crawl)} className="svg-mono" dominantBaseline="central" textAnchor="end">
-            <tspan fontSize={2} fontWeight={600} fill="#9A3412">{fmtMetres(n.distance)}</tspan>
+            <tspan fontSize={2} fontWeight={600} fill="#9A3412">{fmtDistance(n.distance, units)}</tspan>
             <tspan fontSize={1.4} fill="#4A5650" dx={0.6}>{n.exact ? '' : '≈'}{n.ref}</tspan>
           </text>
           <path d={`M ${NEAR_RIGHT - 1} ${y(n.crawl) - 0.7} l 1.2 0.7 l -1.2 0.7 z`} fill="#9A3412" />

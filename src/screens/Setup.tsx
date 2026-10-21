@@ -2,17 +2,30 @@ import type { Dispatch, SetStateAction } from 'react';
 import { NextLink, Screen, Tip } from '../components/Screen';
 import { NumberField } from '../components/NumberField';
 import { TabDiagram } from '../components/TabDiagram';
-import { AppState, Hand, TabSpec, setupProblems, tabFieldErrors, withDistance, withoutDistance } from '../state';
+import { AppState, Hand, TabSpec, Units, fmtDistance, fromLength, lengthUnit, setupProblems, tabFieldErrors, toLength, withDistance, withUnits, withoutDistance } from '../state';
 
-const PRESET_DISTANCES = [3, 5, 10, 15, 18, 20, 25, 30, 40, 50, 60, 70, 80, 90];
+const PRESET_DISTANCES: Record<Units, number[]> = {
+  metric: [3, 5, 10, 15, 18, 20, 25, 30, 40, 50, 60, 70, 80, 90],
+  imperial: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100],
+};
+
+const UNIT_OPTIONS: { id: Units; label: string }[] = [
+  { id: 'metric', label: 'Metric · mm, m' },
+  { id: 'imperial', label: 'Imperial · in, yd' },
+];
 
 export function Setup({ state, setState }: { state: AppState; setState: Dispatch<SetStateAction<AppState>> }) {
-  const { tab } = state;
+  const { tab, units } = state;
   const problems = setupProblems(state);
-  const errors = tabFieldErrors(tab);
+  const errors = tabFieldErrors(tab, units);
+  // tab sizes are kept in mm and shown in the chosen unit
+  const lengthField = (field: keyof Omit<TabSpec, 'hand'>, label: string) => (
+    <NumberField label={label} unit={lengthUnit(units)} value={toLength(tab[field], units)} error={errors[field]}
+      onChange={(n) => setTab({ [field]: fromLength(n, units) })} />
+  );
   const setTab = (patch: Partial<TabSpec>) => setState((s) => ({ ...s, tab: { ...s.tab, ...patch } }));
   const toggle = (d: number) => setState((s) => (s.distances.includes(d) ? withoutDistance(s, d) : withDistance(s, d)));
-  const chips = [...new Set([...PRESET_DISTANCES, ...state.distances])].sort((a, b) => a - b);
+  const chips = [...new Set([...PRESET_DISTANCES[units], ...state.distances])].sort((a, b) => a - b);
 
   return (
     <Screen
@@ -22,11 +35,20 @@ export function Setup({ state, setState }: { state: AppState; setState: Dispatch
       footer={<NextLink to="strip" blocked={problems[0]}>Make sight-in strip</NextLink>}
       aside={
         <>
-          <div className="card diagram-card only-wide"><TabDiagram tab={tab} /></div>
+          <div className="card diagram-card only-wide"><TabDiagram tab={tab} units={units} /></div>
           <Tip>Measure from the top edge of the tab face, where it sits under your nock.</Tip>
         </>
       }
     >
+      <fieldset className="group">
+        <legend>Units</legend>
+        <div className="segmented">
+          {UNIT_OPTIONS.map((u) => (
+            <button key={u.id} aria-pressed={units === u.id} onClick={() => setState((s) => withUnits(s, u.id))}>{u.label}</button>
+          ))}
+        </div>
+      </fieldset>
+
       <fieldset className="group">
         <legend>Shooting hand</legend>
         <div className="segmented">
@@ -38,13 +60,13 @@ export function Setup({ state, setState }: { state: AppState; setState: Dispatch
         </div>
       </fieldset>
 
-      <div className="card diagram-card only-narrow"><TabDiagram tab={tab} /></div>
+      <div className="card diagram-card only-narrow"><TabDiagram tab={tab} units={units} /></div>
 
       <div className="grid-2">
-        <NumberField label="Face length" unit="mm" value={tab.faceLength} error={errors.faceLength} onChange={(n) => setTab({ faceLength: n })} />
-        <NumberField label="Face width" unit="mm" value={tab.faceWidth} error={errors.faceWidth} onChange={(n) => setTab({ faceWidth: n })} />
-        <NumberField label="Marking zone starts" unit="mm" value={tab.zoneStart} error={errors.zoneStart} onChange={(n) => setTab({ zoneStart: n })} />
-        <NumberField label="Marking zone ends" unit="mm" value={tab.zoneEnd} error={errors.zoneEnd} onChange={(n) => setTab({ zoneEnd: n })} />
+        {lengthField('faceLength', 'Face length')}
+        {lengthField('faceWidth', 'Face width')}
+        {lengthField('zoneStart', 'Marking zone starts')}
+        {lengthField('zoneEnd', 'Marking zone ends')}
       </div>
 
       <fieldset className="group">
@@ -52,7 +74,7 @@ export function Setup({ state, setState }: { state: AppState; setState: Dispatch
         <div className="chips">
           {chips.map((d) => (
             <button key={d} className="chip" aria-pressed={state.distances.includes(d)} onClick={() => toggle(d)}>
-              {d} m
+              {fmtDistance(d, units)}
             </button>
           ))}
         </div>

@@ -6,7 +6,7 @@ export interface Reading {
 }
 
 /**
- * Curves that can be fitted to the readings, d in metres:
+ * Curves that can be fitted to the readings, d in metres or yards (the fit works the same in either):
  * - linear     crawl = a − c·d
  * - quadratic  crawl = a − c·d − e·d²   (a smooth bend fitted to the readings, not a physical model)
  * - ballistic  crawl = a − b/d − c·d    (eye height over the arrow plus gravity, no drag: rises to a

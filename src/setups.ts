@@ -1,6 +1,6 @@
 import { CurveModel, DEFAULT_CURVE_MODEL, isCurveModel } from './model/fit';
 import { DEFAULT_TICK_STYLE, isTickStyle } from './model/tickStyles';
-import { AppState, MINOR_RANGE, defaultState, fmtMetres, isPlotMode, validReadings } from './state';
+import { AppState, MINOR_RANGE, defaultState, distanceUnit, fmtDistance, fmtDistanceNumber, isPlotMode, isUnits, validReadings } from './state';
 
 /** A setup saved in this browser under a name. */
 export interface SavedSetup {
@@ -39,6 +39,7 @@ export function sanitizeState(raw: unknown): AppState | null {
   }
   const minor = Math.round(finite(raw.minorMarks, defaultState.minorMarks));
   return {
+    units: isUnits(raw.units) ? raw.units : 'metric',
     tab: {
       hand: tab.hand === 'left' ? 'left' : 'right',
       faceLength: finite(tab.faceLength, d.faceLength),
@@ -113,15 +114,15 @@ export function uniqueName(name: string, library: SavedSetup[]): string {
 export function suggestedName(state: AppState): string {
   const ds = [...state.distances].sort((a, b) => a - b);
   if (ds.length === 0) return 'My tab';
-  if (ds.length === 1) return fmtMetres(ds[0]);
-  return `${fmtMetres(ds[0]).replace(' m', '')}–${fmtMetres(ds[ds.length - 1])}`;
+  if (ds.length === 1) return fmtDistance(ds[0], state.units);
+  return `${fmtDistanceNumber(ds[0])}–${fmtDistanceNumber(ds[ds.length - 1])} ${distanceUnit(state.units)}`;
 }
 
 /** e.g. "5–50 m · 7 distances · 5 readings" */
 export function summary(state: AppState): string {
   const n = state.distances.length;
   const r = validReadings(state).length;
-  const span = n === 1 ? fmtMetres(state.distances[0]) : `${suggestedName(state)} · ${n} distances`;
+  const span = n === 1 ? fmtDistance(state.distances[0], state.units) : `${suggestedName(state)} · ${n} distances`;
   return `${span} · ${r} reading${r === 1 ? '' : 's'}`;
 }
 

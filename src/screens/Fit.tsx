@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 import { NextLink, Screen, Tip } from '../components/Screen';
 import { CURVE_MODELS, CrawlFit, CurveKind, CurveModel, FitResult, Miss, Reading, crawlAt, isCurveModel, offCurve, twinDistance } from '../model/fit';
-import { AppState, SCALE_MAX, fmtMetres } from '../state';
+import { AppState, SCALE_MAX, Units, distanceUnit, fmtDistance } from '../state';
 
 const INTRO = 'Pick how to draw a line through your readings. Your tab marks are placed along it. '
   + 'Use it to double-check your readings are consistent: any that sit well off the line are circled and worth reshooting.';
@@ -41,7 +41,7 @@ const OFF_CURVE_LIMIT = SCALE_MAX * 0.03;
 
 const fmtOff = (off: number) => `${off > 0 ? '+' : '−'}${Math.abs(off).toFixed(1)}`;
 
-function CrawlChart({ fit, readings, misses }: { fit: CrawlFit; readings: Reading[]; misses: Miss[] }) {
+function CrawlChart({ fit, readings, misses, units }: { fit: CrawlFit; readings: Reading[]; misses: Miss[]; units: Units }) {
   const L = 30, R = 314, T = 14, B = 190;
   const xMax = Math.ceil((Math.max(...readings.map((r) => r.distance), fit.pointOn ?? 0) + 2) / 10) * 10;
   const peak = fit.fold !== null ? crawlAt(fit, fit.fold) : 0;
@@ -64,7 +64,7 @@ function CrawlChart({ fit, readings, misses }: { fit: CrawlFit; readings: Readin
 
   return (
     <svg viewBox="0 0 320 220" className="chart" role="img"
-      aria-label={`Crawl against distance${fit.fold !== null ? `, peaking near ${fit.fold.toFixed(0)} m` : ''}.`}>
+      aria-label={`Crawl against distance${fit.fold !== null ? `, peaking near ${fit.fold.toFixed(0)} ${distanceUnit(units)}` : ''}.`}>
       {yTicks.map((v) => (
         <g key={v}>
           <line x1={L} x2={R} y1={Y(v)} y2={Y(v)} style={{ stroke: v === 0 ? 'var(--axis)' : v % 5 === 0 ? 'var(--grid)' : 'var(--grid-minor)' }} />
@@ -124,6 +124,7 @@ export function Fit({ state, setState, result, readings }: {
 
   const { fit } = result;
   const fold = fit.fold;
+  const du = distanceUnit(state.units);
   const pairs = fold !== null
     ? [...state.distances].sort((a, b) => a - b).filter((d) => d < fold).flatMap((d) => {
       const twin = twinDistance(fit, d);
@@ -144,15 +145,15 @@ export function Fit({ state, setState, result, readings }: {
           {picker}
           <div className="stats">
             <div className="stat"><div className="stat-label">Fit error</div><div className="stat-value">{fit.rms.toFixed(1)}</div></div>
-            <div className="stat"><div className="stat-label">Fold</div><div className="stat-value">{fold !== null ? fold.toFixed(0) : '—'}<span> m</span></div></div>
-            <div className="stat"><div className="stat-label">Point-on</div><div className="stat-value">{fit.pointOn !== null ? fit.pointOn.toFixed(0) : '—'}<span> m</span></div></div>
+            <div className="stat"><div className="stat-label">Fold</div><div className="stat-value">{fold !== null ? fold.toFixed(0) : '—'}<span> {du}</span></div></div>
+            <div className="stat"><div className="stat-label">Point-on</div><div className="stat-value">{fit.pointOn !== null ? fit.pointOn.toFixed(0) : '—'}<span> {du}</span></div></div>
           </div>
         </>
       }
     >
 
       <figure className="card chart-card">
-        <CrawlChart fit={fit} readings={readings} misses={misses} />
+        <CrawlChart fit={fit} readings={readings} misses={misses} units={state.units} />
         <figcaption>
           {fold !== null && (
             <span><svg width="20" height="6" aria-hidden="true"><line x1="0" y1="3" x2="20" y2="3" style={{ stroke: 'var(--near-branch)' }} strokeWidth="2.5" strokeDasharray="6 4" /></svg>Near branch</span>
@@ -161,14 +162,14 @@ export function Fit({ state, setState, result, readings }: {
           {misses.length > 0 && (
             <span><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" style={{ stroke: MISS }} strokeOpacity="0.6" strokeWidth="1.25" /></svg>Off the curve</span>
           )}
-          <span>Strip reading ↑ · distance m →</span>
+          <span>Strip reading ↑ · distance {du} →</span>
         </figcaption>
       </figure>
 
       {misses.length > 0 && (
         <Tip>
           {misses.length === 1 ? 'This reading is' : 'These readings are'} more than {OFF_CURVE_LIMIT.toFixed(1)} off the curve:{' '}
-          {misses.map((m) => `${fmtMetres(m.distance)} (${fmtOff(m.off)})`).join(', ')}.
+          {misses.map((m) => `${fmtDistance(m.distance, state.units)} (${fmtOff(m.off)})`).join(', ')}.
           {' '}Check for typos, or reshoot {misses.length === 1 ? 'it' : 'them'}.
         </Tip>
       )}
@@ -180,8 +181,8 @@ export function Fit({ state, setState, result, readings }: {
           <div className="pair-list">
             {pairs.map(({ d, twin }) => (
               <div key={d} className="pair">
-                <span className="near">{d} m</span><span className="muted">=</span>
-                <span className="far">{fmtMetres(Math.round(twin * 2) / 2)}</span>
+                <span className="near">{fmtDistance(d, state.units)}</span><span className="muted">=</span>
+                <span className="far">{fmtDistance(Math.round(twin * 2) / 2, state.units)}</span>
               </div>
             ))}
           </div>
