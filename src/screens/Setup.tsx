@@ -2,13 +2,14 @@ import type { Dispatch, SetStateAction } from 'react';
 import { NextLink, Screen, Tip } from '../components/Screen';
 import { NumberField } from '../components/NumberField';
 import { TabDiagram } from '../components/TabDiagram';
-import { AppState, Hand, TabSpec, setupProblems, withDistance, withoutDistance } from '../state';
+import { AppState, Hand, TabSpec, setupProblems, tabFieldErrors, withDistance, withoutDistance } from '../state';
 
-const PRESET_DISTANCES = [3, 5, 10, 15, 18, 20, 25, 30, 40, 50, 60, 70];
+const PRESET_DISTANCES = [3, 5, 10, 15, 18, 20, 25, 30, 40, 50, 60, 70, 80, 90];
 
 export function Setup({ state, setState }: { state: AppState; setState: Dispatch<SetStateAction<AppState>> }) {
   const { tab } = state;
   const problems = setupProblems(state);
+  const errors = tabFieldErrors(tab);
   const setTab = (patch: Partial<TabSpec>) => setState((s) => ({ ...s, tab: { ...s.tab, ...patch } }));
   const toggle = (d: number) => setState((s) => (s.distances.includes(d) ? withoutDistance(s, d) : withDistance(s, d)));
   const chips = [...new Set([...PRESET_DISTANCES, ...state.distances])].sort((a, b) => a - b);
@@ -40,10 +41,10 @@ export function Setup({ state, setState }: { state: AppState; setState: Dispatch
       <div className="card diagram-card only-narrow"><TabDiagram tab={tab} /></div>
 
       <div className="grid-2">
-        <NumberField label="Face length" unit="mm" value={tab.faceLength} onChange={(n) => setTab({ faceLength: n })} />
-        <NumberField label="Face width" unit="mm" value={tab.faceWidth} onChange={(n) => setTab({ faceWidth: n })} />
-        <NumberField label="Marking zone starts" unit="mm" value={tab.zoneStart} onChange={(n) => setTab({ zoneStart: n })} />
-        <NumberField label="Marking zone ends" unit="mm" value={tab.zoneEnd} onChange={(n) => setTab({ zoneEnd: n })} />
+        <NumberField label="Face length" unit="mm" value={tab.faceLength} error={errors.faceLength} onChange={(n) => setTab({ faceLength: n })} />
+        <NumberField label="Face width" unit="mm" value={tab.faceWidth} error={errors.faceWidth} onChange={(n) => setTab({ faceWidth: n })} />
+        <NumberField label="Marking zone starts" unit="mm" value={tab.zoneStart} error={errors.zoneStart} onChange={(n) => setTab({ zoneStart: n })} />
+        <NumberField label="Marking zone ends" unit="mm" value={tab.zoneEnd} error={errors.zoneEnd} onChange={(n) => setTab({ zoneEnd: n })} />
       </div>
 
       <fieldset className="group">

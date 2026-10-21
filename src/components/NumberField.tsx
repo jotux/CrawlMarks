@@ -6,10 +6,12 @@ interface Props {
   value: number;
   onChange: (n: number) => void;
   unit: string;
+  /** shown under the field, which is marked invalid */
+  error?: string;
 }
 
 /** A numeric input that keeps what was typed while it's mid-edit ("4", "4.", "") and commits valid numbers. */
-export function NumberField({ label, value, onChange, unit }: Props) {
+export function NumberField({ label, value, onChange, unit, error }: Props) {
   const [draft, setDraft] = useState(String(value));
   useEffect(() => {
     if (parseNum(draft) !== value) setDraft(String(value));
@@ -19,9 +21,10 @@ export function NumberField({ label, value, onChange, unit }: Props) {
   return (
     <label className="field">
       <span className="field-label">{label}</span>
-      <span className="field-box">
+      <span className={`field-box${error ? ' invalid' : ''}`}>
         <input
           inputMode="decimal"
+          aria-invalid={!!error}
           value={draft}
           onChange={(e) => {
             setDraft(e.target.value);
@@ -32,6 +35,7 @@ export function NumberField({ label, value, onChange, unit }: Props) {
         />
         <span className="unit">{unit}</span>
       </span>
+      {error && <span className="field-error">{error}</span>}
     </label>
   );
 }

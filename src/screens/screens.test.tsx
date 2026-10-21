@@ -11,6 +11,7 @@ import { Strip } from './Strip';
 
 const sample: AppState = {
   ...defaultState,
+  tab: { hand: 'right', faceLength: 72, faceWidth: 38, zoneStart: 6, zoneEnd: 58 },
   curveModel: 'fold',
   readings: { 5: '26.5', 10: '41.5', 18: '39.5', 25: '32.5', 30: '26.5', 40: '13.5', 50: '0' },
 };
@@ -126,6 +127,24 @@ describe('screens', () => {
     expect(Number(fifty?.[2]) - Number(fifty?.[1])).toBeCloseTo(7);
     expect(edge).toContain('>TOP</text>');
     expect(edge).not.toContain('NOCK SIDE');
+  });
+
+  it('flag tab measurements on their own fields', () => {
+    const tab = (patch: Partial<AppState['tab']>) => render({ ...sample, tab: { ...sample.tab, ...patch } }).setup;
+    const past = tab({ zoneEnd: 80 });
+    expect(past).toContain('Can’t go past the 72 mm face length');
+    expect(past).toContain('field-box invalid');
+    expect(tab({ zoneStart: 75, zoneEnd: 72 })).toContain('Must start within the 72 mm face');
+    expect(tab({ zoneEnd: 8 })).toContain('At least 5 mm below where it starts');
+    expect(render(sample).setup).not.toContain('field-box invalid');
+  });
+
+  it('offer 80 and 90 m, and start from a 60 × 24 mm tab', () => {
+    const setup = render(defaultState).setup;
+    expect(setup).toContain('80 m');
+    expect(setup).toContain('90 m');
+    expect(defaultState.tab).toMatchObject({ faceLength: 60, faceWidth: 24 });
+    expect(setup).not.toContain('field-box invalid');
   });
 
   it('explain what is missing before there are readings', () => {

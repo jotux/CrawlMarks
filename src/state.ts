@@ -39,7 +39,7 @@ export const templateWidthRange = (tab: TabSpec) => ({ min: 10, max: Math.max(10
 export const SCALE_MAX = 50;
 
 export const defaultState: AppState = {
-  tab: { hand: 'right', faceLength: 72, faceWidth: 38, zoneStart: 6, zoneEnd: 58 },
+  tab: { hand: 'right', faceLength: 60, faceWidth: 24, zoneStart: 6, zoneEnd: 54 },
   distances: [5, 10, 18, 25, 30, 40, 50],
   readings: {},
   minorMarks: 4,
@@ -123,6 +123,21 @@ export function parseNum(text: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+export type TabField = 'faceLength' | 'faceWidth' | 'zoneStart' | 'zoneEnd';
+
+/** What is wrong with each tab measurement, shown under its field. */
+export function tabFieldErrors(tab: TabSpec): Partial<Record<TabField, string>> {
+  const { faceLength, faceWidth, zoneStart, zoneEnd } = tab;
+  const out: Partial<Record<TabField, string>> = {};
+  if (!(faceLength >= 20 && faceLength <= 200)) out.faceLength = 'Between 20 and 200 mm';
+  if (!(faceWidth >= 10 && faceWidth <= 120)) out.faceWidth = 'Between 10 and 120 mm';
+  if (!(zoneStart >= 0)) out.zoneStart = 'Can’t start above the top edge';
+  else if (!(zoneStart < faceLength)) out.zoneStart = `Must start within the ${faceLength} mm face`;
+  if (!(zoneEnd <= faceLength)) out.zoneEnd = `Can’t go past the ${faceLength} mm face length`;
+  else if (!(zoneEnd > zoneStart + 5)) out.zoneEnd = 'At least 5 mm below where it starts';
+  return out;
+}
+
 export function setupProblems(state: AppState): string[] {
   const { faceLength, faceWidth, zoneStart, zoneEnd } = state.tab;
   const out: string[] = [];
@@ -130,7 +145,7 @@ export function setupProblems(state: AppState): string[] {
   if (!(faceWidth >= 10 && faceWidth <= 120)) out.push('Face width should be between 10 and 120 mm.');
   if (!(zoneStart >= 0)) out.push('The marking zone can’t start above the top edge.');
   if (!(zoneEnd > zoneStart + 5)) out.push('The marking zone needs to be at least 5 mm tall.');
-  if (!(zoneEnd <= faceLength)) out.push('The marking zone must end on the tab face.');
+  if (!(zoneEnd <= faceLength)) out.push(`The marking zone can’t go past the ${faceLength} mm face length.`);
   if (state.distances.length < 1) out.push('Pick at least one distance.');
   return out;
 }
