@@ -156,20 +156,24 @@ describe('screens', () => {
     expect(html.setup).toContain('>in<');
     expect(html.setup).toContain('100 yd');
     expect(html.strip).toContain('this bar = 2 in');
-    expect(html.readings).toContain('19.7 yd');
+    expect(html.readings).toContain('20 yd');
     expect(html.sheet).toContain('Every 5 yd');
     expect(html.sheet).toContain('1.5 × 2.83 in');
     expect(html.sheet).not.toMatch(/\d m</);
   });
 
-  it('switch units: fresh setups get the new defaults, readings keep their converted distances', () => {
-    const fresh = withUnits(defaultState, 'imperial');
-    expect(fresh.distances).toEqual([10, 15, 20, 30, 40, 50, 60]);
-    expect(fresh.tab).toEqual(defaultState.tab);
+  it('switch units to the nearest whole yard or metre, keeping readings', () => {
     const converted = withUnits(sample, 'imperial');
-    expect(converted.distances).toContain(19.7);
-    expect(converted.readings['19.7']).toBe('39.5');
-    expect(withUnits(converted, 'metric').readings['18']).toBe('39.5');
+    expect(converted.distances).toEqual([5, 11, 20, 27, 33, 44, 55]);
+    expect(converted.readings['20']).toBe('39.5');
+    expect(converted.tab).toEqual(sample.tab);
+    const back = withUnits(converted, 'metric');
+    expect(back.distances).toEqual([5, 10, 18, 25, 30, 40, 50]);
+    expect(back.readings['18']).toBe('39.5');
+    // two distances that round to the same yard merge, keeping the first reading
+    const close = withUnits({ ...sample, distances: [30, 30.4], readings: { 30: '20', 30.4: '19' } }, 'imperial');
+    expect(close.distances).toEqual([33]);
+    expect(close.readings['33']).toBe('20');
   });
 
   it('explain what is missing before there are readings', () => {

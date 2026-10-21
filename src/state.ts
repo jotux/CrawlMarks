@@ -24,8 +24,6 @@ export const fmtDistanceNumber = (d: number) => `${Math.abs(d - Math.round(d)) <
 export const fmtDistance = (d: number, u: Units) => `${fmtDistanceNumber(d)} ${distanceUnit(u)}`;
 /** Farthest distance that can be added, in the chosen unit (about 150 m either way). */
 export const MAX_DISTANCE: Record<Units, number> = { metric: 150, imperial: 165 };
-/** Distances a new setup starts with. */
-export const DEFAULT_DISTANCES: Record<Units, number[]> = { metric: [5, 10, 18, 25, 30, 40, 50], imperial: [10, 15, 20, 30, 40, 50, 60] };
 
 /** What the marker sheet draws: lines from the fitted curve every 5 m, or only the recorded distances. */
 export type PlotMode = 'curve' | 'recorded';
@@ -65,7 +63,7 @@ export const SCALE_MAX = 50;
 export const defaultState: AppState = {
   units: 'metric',
   tab: { hand: 'right', faceLength: 60, faceWidth: 24, zoneStart: 6, zoneEnd: 54 },
-  distances: DEFAULT_DISTANCES.metric,
+  distances: [5, 10, 18, 25, 30, 40, 50],
   readings: {},
   minorMarks: 4,
   tickStyle: DEFAULT_TICK_STYLE,
@@ -219,18 +217,18 @@ export function validReadings(state: AppState): Reading[] {
 }
 
 /**
- * Switches units. Tab sizes are kept in mm, so only distances change: with no readings
- * yet they become the new unit's usual distances; otherwise each is converted, keeping its reading.
+ * Switches units. Tab sizes are kept in mm, so only distances change: each becomes the
+ * nearest whole yard (or metre), keeping its reading. Distances that land on the same
+ * number merge, keeping the first one's reading.
  */
 export function withUnits(state: AppState, units: Units): AppState {
   if (state.units === units) return state;
-  if (validReadings(state).length === 0) return { ...state, units, distances: DEFAULT_DISTANCES[units], readings: {} };
   const factor = units === 'imperial' ? 1 / M_PER_YD : M_PER_YD;
-  const convert = (d: number) => Math.round(d * factor * 10) / 10;
+  const convert = (d: number) => Math.max(1, Math.round(d * factor));
   const readings: Record<string, string> = {};
   for (const d of state.distances) {
     const text = state.readings[d];
-    if (text !== undefined) readings[convert(d)] = text;
+    if (text !== undefined && !(convert(d) in readings)) readings[convert(d)] = text;
   }
   return { ...state, units, distances: [...new Set(state.distances.map(convert))], readings };
 }
