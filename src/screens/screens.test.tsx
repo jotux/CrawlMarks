@@ -41,6 +41,7 @@ describe('screens', () => {
     expect(html.readings).toContain('aria-label="Delete 18 m"');
     expect(html.readings).toContain('Move 18 m.');
     expect(html.fit).toContain('Same crawl, two distances');
+    expect(html.fit).toContain('Ballistic');
     expect(html.sheet).toContain('L1');
     expect(html.sheet).toContain('FOLD');
     expect(html.sheet).toContain('Art. 9.3.7 Finger Protection');

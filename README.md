@@ -34,11 +34,11 @@ On the curve step you choose the curve to fit to your readings. `d` is the dista
 
 | Curve | Formula | When to use it |
 |---|---|---|
-| **Quadratic** (default) | `a − c·d − e·d²` | Aiming with the arrow point. The arrow slows as it flies, so crawl bends slightly with distance. |
+| **Quadratic** (default) | `a − c·d − e·d²` | A general-purpose fit for aiming with the arrow point. The `d²` term lets crawl bend smoothly with distance, but it is a curve fitted to your readings, not a physical model. It has no term for your eye sitting above the arrow, so it can't turn back up close. |
 | **Linear** | `a − c·d` | A few readings over a narrow range of distances. |
-| **Fold** | `a − b/d − c·d` | Readings where crawl peaks and then shrinks again up close. |
+| **Ballistic** | `a − b/d − c·d` | Readings where crawl peaks and then shrinks again up close. Built from simple flight physics: `b/d` is your eye sitting above the arrow, which matters most up close, and `c·d` is gravity. It leaves out drag, so it can read slightly low at long distances. |
 | **Manual (join the dots)** | none | A smooth line through every reading that never overshoots between them. Errors in a reading are not smoothed out. |
-| **Auto** | | Picks linear, quadratic or fold, whichever best predicts each reading from the others. |
+| **Auto** | | Picks linear, quadratic or ballistic, whichever best predicts each reading from the others. |
 
 If the chosen curve peaks inside your readings, that peak is the **fold**. Each near distance then shares its crawl with a far distance on the other side of the fold, so one tab line works for both. The key card lists near distances against the far mark they share.
 

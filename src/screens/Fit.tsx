@@ -9,8 +9,9 @@ const INTRO = 'Pick how to draw a line through your readings. Your tab marks are
 const CURVES: Record<CurveModel, { name: string; formula?: string; about: string }> = {
   auto: { name: 'Auto', about: 'Picks the curve that best predicts each reading from the others.' },
   linear: { name: 'Linear', formula: 'a − c·d', about: 'A straight line: crawl shrinks evenly with distance.' },
-  quadratic: { name: 'Quadratic', formula: 'a − c·d − e·d²', about: 'Bends as the arrow slows in flight. Best fit for aiming with the arrow point.' },
-  fold: { name: 'Fold', formula: 'a − b/d − c·d', about: 'Crawl peaks, then shrinks again up close.' },
+  quadratic: { name: 'Quadratic', formula: 'a − c·d − e·d²', about: 'A smooth bend fitted to your readings, not a physical model. Can’t turn back up close.' },
+  // id stays 'fold' so saved setups and share links still load
+  fold: { name: 'Ballistic', formula: 'a − b/d − c·d', about: 'Eye height above the arrow plus gravity, without drag. Crawl peaks, then shrinks again up close.' },
   manual: { name: 'Manual (join the dots)', about: 'A smooth line through every reading. Errors in a reading are not smoothed out.' },
 };
 
