@@ -15,7 +15,7 @@ export interface Mark {
 export interface MarkOptions {
   /** short lines between each pair of long lines */
   minor: number;
-  /** bottom of the strip scale; crawls outside 0..scaleMax are off the marking zone */
+  /** bottom of the strip scale; crawls outside 0..scaleMax are off the face */
   scaleMax: number;
   nearestReading: number;
   farthestReading: number;
@@ -25,7 +25,7 @@ const EPS = 1e-9;
 
 /**
  * Lines for the far branch of the curve: a long line every 5 m (or yd) and `minor`
- * evenly spaced short lines between neighbours. Lines outside the marking zone
+ * evenly spaced short lines between neighbours. Lines off the face
  * are dropped.
  */
 export function buildMarks(fit: CrawlFit, o: MarkOptions): Mark[] {
@@ -33,10 +33,10 @@ export function buildMarks(fit: CrawlFit, o: MarkOptions): Mark[] {
     ? Math.floor(fit.fold / 5) * 5 + 5
     : Math.ceil(o.nearestReading / 5 - EPS) * 5;
   const last = Math.floor((fit.pointOn ?? o.farthestReading) / 5 + EPS) * 5;
-  const inZone = (crawl: number) => crawl >= -EPS && crawl <= o.scaleMax + EPS;
+  const onFace = (crawl: number) => crawl >= -EPS && crawl <= o.scaleMax + EPS;
 
   const majors: number[] = [];
-  for (let d = first; d <= last; d += 5) if (inZone(crawlAt(fit, d))) majors.push(d);
+  for (let d = first; d <= last; d += 5) if (onFace(crawlAt(fit, d))) majors.push(d);
 
   const step = 5 / (o.minor + 1);
   const marks: Mark[] = [];
@@ -46,7 +46,7 @@ export function buildMarks(fit: CrawlFit, o: MarkOptions): Mark[] {
     for (let k = 1; k <= o.minor; k++) {
       const dk = d + k * step;
       const crawl = crawlAt(fit, dk);
-      if (inZone(crawl)) marks.push({ distance: dk, crawl, long: false, minor: k, id: `L${i + 1}·${k}` });
+      if (onFace(crawl)) marks.push({ distance: dk, crawl, long: false, minor: k, id: `L${i + 1}·${k}` });
     }
   });
   return marks;

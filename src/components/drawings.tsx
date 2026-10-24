@@ -1,8 +1,8 @@
 // Everything here is drawn in millimetres. On screen the SVGs scale to their
 // container; with `trueSize` they carry real mm dimensions so they print 1:1.
-// Crawls arrive in strip units (0–SCALE_MAX across the zone) and are placed with unitsToMm.
+// Crawls arrive in strip units (0–SCALE_MAX down the face) and are placed with unitsToMm.
 import type { TabSpec, Units } from '../state';
-import { SCALE_MAX, distanceUnit, fmtDistance, fmtDistanceNumber, unitsToMm, zoneLength } from '../state';
+import { SCALE_MAX, distanceUnit, fmtDistance, fmtDistanceNumber, unitsToMm } from '../state';
 import type { Mark, NearLabel } from '../model/marks';
 import { stripTicks, tickStep } from '../model/strip';
 import { TickContext, TickStyle, tickSegments } from '../model/tickStyles';
@@ -115,7 +115,7 @@ const STRIP_LABEL = { size: 2.6, top: 1.7, bottom: 3.2 };
 
 export function StripDrawing({ tab, trueSize }: { tab: TabSpec; trueSize?: boolean }) {
   const { faceWidth: w, faceLength: h } = tab;
-  const ticks = stripTicks(zoneLength(tab), SCALE_MAX);
+  const ticks = stripTicks(tab.faceLength, SCALE_MAX);
   // ticks run down the edge under the index finger; mirror for a left-handed tab
   const left = tab.hand === 'right';
   const x0 = left ? 0 : w;
@@ -123,13 +123,13 @@ export function StripDrawing({ tab, trueSize }: { tab: TabSpec; trueSize?: boole
   const LEN = { label: 7, half: 5, small: 3 };
   // each tick starts at the cut line, so in the rounded corners it steps in and keeps its full length
   const edge = (y: number) => x0 + dir * faceInset(w, h, y);
-  // numbers stay inside the strip even when the zone starts or ends at its edge
+  // numbers stay inside the strip at 0 and SCALE_MAX, which sit on its top and bottom edges
   const labelY = (y: number) => Math.min(h - STRIP_LABEL.bottom, Math.max(STRIP_LABEL.top, y));
   // TOP sits in the top corner away from the ticks
   const corner = Math.max(1.2, cornerRadius(w, h));
   return (
     <svg viewBox={`0 0 ${w} ${h}`} {...size(w, h, trueSize)} role="img"
-      aria-label={`Sight-in strip, 0 to ${SCALE_MAX} with a tick every ${tickStep(zoneLength(tab), SCALE_MAX)}`}>
+      aria-label={`Sight-in strip, 0 to ${SCALE_MAX} with a tick every ${tickStep(tab.faceLength, SCALE_MAX)}`}>
       <path d={facePath(w, h)} {...CUT} />
       {ticks.map((t) => {
         const y = unitsToMm(tab, t.units);
@@ -183,8 +183,8 @@ const TAB_W = 15.5;
 const FAR_X = TAB_X + TAB_W + 1.3;
 const LABEL_SPACING = 2.6;
 
-/** Vertical scale of the key card relative to the real tab, chosen so the marking zone fills the card. */
-export const keyCardScale = (tab: TabSpec) => Math.min(3, (PLOT_BOTTOM - PLOT_TOP) / zoneLength(tab));
+/** Vertical scale of the key card relative to the real tab, chosen so the face length fills the card. */
+export const keyCardScale = (tab: TabSpec) => Math.min(3, (PLOT_BOTTOM - PLOT_TOP) / tab.faceLength);
 
 /**
  * The numbered key card, business-card size: near distances on the left, far
@@ -202,7 +202,7 @@ export function KeyCard({ tab, units, marks, style, near, foldCrawl, foldDistanc
   trueSize?: boolean;
 }) {
   const scale = keyCardScale(tab);
-  const y = (crawl: number) => PLOT_TOP + (crawl / SCALE_MAX) * zoneLength(tab) * scale;
+  const y = (crawl: number) => PLOT_TOP + (crawl / SCALE_MAX) * tab.faceLength * scale;
 
   // label every long line; short lines only where there is room
   const farPlaced: number[] = [];

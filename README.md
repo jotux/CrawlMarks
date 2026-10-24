@@ -10,8 +10,8 @@ Barebow archers aim by string walking: they move their hand down the string belo
 
 The app walks you through five steps:
 
-1. **Describe your tab.** Choose metric (mm and metres) or imperial (inches and yards), then enter your shooting hand, the size of the tab face, the part of the face you can mark, and the distances you want to sight in.
-2. **Print a sight-in strip.** CrawlMarks makes a strip sized to your tab that reads 0–50 down the marking zone, whatever size your tab is. Numbered major lines sit every 10, with ten divisions between them (a longer tick at each 5). On a zone shorter than 50 mm the small ticks drop to every 2 units so they stay at least 1 mm apart. Print it at 100% scale, check it against the 50 mm scale bar, cut it out and stick it on the tab. The printed page also has a table for writing down your reading at each distance.
+1. **Describe your tab.** Choose metric (mm and metres) or imperial (inches and yards), then enter your shooting hand, the size of the tab face, and the distances you want to sight in.
+2. **Print a sight-in strip.** CrawlMarks makes a strip sized to your tab that reads 0–50 down the whole face, from the top edge to the bottom, whatever size your tab is. Numbered major lines sit every 10, with ten divisions between them (a longer tick at each 5). On a face shorter than 50 mm the small ticks drop to every 2 units so they stay at least 1 mm apart. Print it at 100% scale, check it against the 50 mm scale bar, cut it out and stick it on the tab. The printed page also has a table for writing down your reading at each distance.
 3. **Enter your readings.** Shoot each distance until your arrows group, then enter the strip reading level with your nock. The number is 0–50, and you can judge halfway between ticks. Mark the distance where you are point-on, meaning no crawl is needed.
 4. **Fit the curve.** CrawlMarks fits a curve through your readings and shows how well it matches them. You can pick which curve to use.
 5. **Get your marker sheet.** You get two things to print:

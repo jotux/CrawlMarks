@@ -6,7 +6,9 @@ import { fmtLength } from '../state';
 // (leather face, plate, ruler strip), so its colours are fixed;
 // the dimension lines and labels follow the theme.
 const W = 340, H = 256;
-const TOP = 46, MAX_H = 158, MAX_W = 96, LEFT = 60;
+const TOP = 46, MAX_H = 158, MAX_W = 96;
+/** room left of the tab for the face length dimension and its label */
+const LENGTH_LABEL = 34;
 /** plate width as a share of the face width, as on the reference tab */
 const PLATE = 0.62;
 const ink = { fill: 'var(--ink)' };
@@ -65,17 +67,16 @@ export function TabDiagram({ tab, units }: { tab: TabSpec; units: Units }) {
   const scale = Math.min(MAX_H / length, MAX_W / width);
   const w = width * scale, h = length * scale, p = w * PLATE;
   const left = tab.hand === 'left';
+  // the tab and its length label, centred across the diagram
+  const LEFT = (W - (w + p) + LENGTH_LABEL) / 2;
   // the face sits beside the plate: plate on the right for a right-handed tab, mirrored for a left
   const faceX = left ? LEFT + p : LEFT;
   const outer = LEFT + w + p;
   const bottom = TOP + h;
-  const at = (mm: number) => TOP + Math.min(Math.max(mm, 0), length) * scale;
-  const zs = at(tab.zoneStart), ze = at(Math.max(tab.zoneEnd, tab.zoneStart));
-  const lx = outer + 30;
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="tab-diagram" role="img"
-      aria-label={`Tab face ${len(tab.faceLength)} by ${len(tab.faceWidth)}. Measure everything down from the top edge, under your nock: the marking zone runs from ${len(tab.zoneStart)} to ${len(tab.zoneEnd)}.`}>
+      aria-label={`Tab face ${len(tab.faceLength)} by ${len(tab.faceWidth)}, measured from the top edge under your nock. The marks use the whole face length.`}>
       <defs>
         <linearGradient id={`${id}-leather`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#4A2A26" />
@@ -90,14 +91,6 @@ export function TabDiagram({ tab, units }: { tab: TabSpec; units: Units }) {
       <g transform={left ? `translate(${outer} ${TOP}) scale(-1 1)` : `translate(${LEFT} ${TOP})`}>
         <TabPicture w={w} h={h} mm={scale} id={id} />
       </g>
-
-      {/* marking zone over the face */}
-      <rect x={faceX} y={zs} width={w} height={ze - zs} fill="#5FB8B2" fillOpacity="0.16" stroke="#7FD0CA" strokeWidth="1.25" strokeDasharray="4 3" />
-      {ze - zs > 34 && (
-        <text x={faceX + w / 2} y={(zs + ze) / 2 - 6} className="diagram-label small" textAnchor="middle" fill="#E6F4F2">
-          marking<tspan x={faceX + w / 2} dy="13">zone</tspan>
-        </text>
-      )}
 
       {/* top edge: where every measurement starts */}
       <line x1={faceX - 3} x2={faceX + w + 3} y1={TOP} y2={TOP} style={{ stroke: 'var(--accent)' }} strokeWidth="3.5" strokeLinecap="round" />
@@ -114,18 +107,6 @@ export function TabDiagram({ tab, units }: { tab: TabSpec; units: Units }) {
       <Dim x1={faceX} y1={bottom + 16} x2={faceX + w} y2={bottom + 16} />
       <text x={faceX + w / 2} y={bottom + 32} className="diagram-label" textAnchor="middle" style={ink}>
         Face width · <tspan className="mono">{len(tab.faceWidth)}</tspan>
-      </text>
-
-      {/* marking zone, both measured from the top edge */}
-      <Dim x1={outer + 8} y1={TOP} x2={outer + 8} y2={zs} color="var(--teal)" />
-      <Dim x1={outer + 20} y1={TOP} x2={outer + 20} y2={ze} color="var(--teal)" />
-      <line x1={faceX + w} x2={lx - 4} y1={zs} y2={zs} style={{ stroke: 'var(--teal)' }} strokeDasharray="2 2" opacity="0.7" />
-      <line x1={faceX + w} x2={lx - 4} y1={ze} y2={ze} style={{ stroke: 'var(--teal)' }} strokeDasharray="2 2" opacity="0.7" />
-      <text x={lx} y={zs} className="diagram-label" dominantBaseline="central" style={ink}>
-        Zone starts · <tspan className="mono">{len(tab.zoneStart)}</tspan>
-      </text>
-      <text x={lx} y={Math.max(ze, zs + 16)} className="diagram-label" dominantBaseline="central" style={ink}>
-        Zone ends · <tspan className="mono">{len(tab.zoneEnd)}</tspan>
       </text>
     </svg>
   );

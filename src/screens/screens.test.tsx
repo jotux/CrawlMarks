@@ -11,7 +11,7 @@ import { Strip } from './Strip';
 
 const sample: AppState = {
   ...defaultState,
-  tab: { hand: 'right', faceLength: 72, faceWidth: 38, zoneStart: 6, zoneEnd: 58 },
+  tab: { hand: 'right', faceLength: 72, faceWidth: 38 },
   curveModel: 'ballistic',
   readings: { 5: '26.5', 10: '41.5', 18: '39.5', 25: '32.5', 30: '26.5', 40: '13.5', 50: '0' },
 };
@@ -117,8 +117,8 @@ describe('screens', () => {
     expect(width(120)).toBeCloseTo(150);
   });
 
-  it('keep strip ticks and numbers inside the strip when the zone runs to its edges', () => {
-    const edge = render({ ...sample, tab: { ...sample.tab, faceLength: 60, zoneStart: 0, zoneEnd: 60 } }).strip;
+  it('keep strip ticks and numbers inside the strip, with 0 and 50 on its edges', () => {
+    const edge = render({ ...sample, tab: { ...sample.tab, faceLength: 60 } }).strip;
     const ys = [...edge.matchAll(/<text x="[\d.]+" y="([\d.]+)" class="svg-mono"/g)].map((m) => Number(m[1]));
     expect(ys.length).toBeGreaterThan(0);
     for (const y of ys) expect(y >= 1.7 && y <= 60 - 3.2).toBe(true);
@@ -132,11 +132,11 @@ describe('screens', () => {
 
   it('flag tab measurements on their own fields', () => {
     const tab = (patch: Partial<AppState['tab']>) => render({ ...sample, tab: { ...sample.tab, ...patch } }).setup;
-    const past = tab({ zoneEnd: 80 });
-    expect(past).toContain('Can’t go past the 72 mm face length');
-    expect(past).toContain('field-box invalid');
-    expect(tab({ zoneStart: 75, zoneEnd: 72 })).toContain('Must start within the 72 mm face');
-    expect(tab({ zoneEnd: 8 })).toContain('At least 5 mm below where it starts');
+    const short = tab({ faceLength: 10 });
+    expect(short).toContain('Between 20 mm and 200 mm');
+    expect(short).toContain('field-box invalid');
+    expect(tab({ faceWidth: 5 })).toContain('Between 10 mm and 120 mm');
+    expect(tab({ faceLength: 72 })).not.toContain('field-box invalid');
     expect(render(sample).setup).not.toContain('field-box invalid');
   });
 

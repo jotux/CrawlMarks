@@ -65,8 +65,6 @@ export function Setup({ state, setState }: { state: AppState; setState: Dispatch
       <div className="grid-2">
         {lengthField('faceLength', 'Face length')}
         {lengthField('faceWidth', 'Face width')}
-        {lengthField('zoneStart', 'Marking zone starts')}
-        {lengthField('zoneEnd', 'Marking zone ends')}
       </div>
 
       <fieldset className="group">

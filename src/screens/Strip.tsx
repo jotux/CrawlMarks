@@ -1,6 +1,6 @@
 import { NextLink, PrintButton, Screen } from '../components/Screen';
 import { LogoImage, ScaleBar, StripDrawing } from '../components/drawings';
-import { AppState, SCALE_MAX, TabSpec, Units, fmtDistance, fmtLength, fmtSize, toLength, zoneLength } from '../state';
+import { AppState, SCALE_MAX, TabSpec, Units, fmtDistance, fmtSize } from '../state';
 import { tickStep } from '../model/strip';
 
 const STEPS_TEXT = [
@@ -10,7 +10,7 @@ const STEPS_TEXT = [
 ];
 
 const summary = (tab: TabSpec, u: Units) =>
-  `${fmtSize(tab.faceLength, tab.faceWidth, u)} · ${tab.hand} hand · zone ${toLength(tab.zoneStart, u)}–${fmtLength(tab.zoneEnd, u)}`;
+  `${fmtSize(tab.faceLength, tab.faceWidth, u)} · ${tab.hand} hand`;
 
 /** The bar printed for checking the scale with a ruler: 50 mm, or 2 in for imperial rulers. */
 const SCALE_CHECK: Record<Units, { length: number; label: string }> = {
@@ -19,8 +19,8 @@ const SCALE_CHECK: Record<Units, { length: number; label: string }> = {
 };
 
 const scaleNote = (tab: TabSpec) => {
-  const step = tickStep(zoneLength(tab), SCALE_MAX);
-  return `Reads 0–${SCALE_MAX} down the marking zone, with a tick every ${step === 1 ? 'unit' : `${step} units`}.`;
+  const step = tickStep(tab.faceLength, SCALE_MAX);
+  return `Reads 0–${SCALE_MAX} down the face, with a tick every ${step === 1 ? 'unit' : `${step} units`}.`;
 };
 
 /** On-screen px per mm for the strip preview, and the most px a very wide face may take across. */

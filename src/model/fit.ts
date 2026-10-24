@@ -1,7 +1,7 @@
 export interface Reading {
   /** metres */
   distance: number;
-  /** mm down the strip from the top of the marking zone */
+  /** mm down the strip from the top edge of the face */
   crawl: number;
 }
 

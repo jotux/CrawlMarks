@@ -14,7 +14,7 @@ describe('strip ticks', () => {
     expect(labelStep(15, 50)).toBe(20);
   });
 
-  it('builds a 0–50 strip with 10 divisions per major line on the default 52 mm zone', () => {
+  it('builds a 0–50 strip with 10 divisions per major line on a 52 mm face', () => {
     const ticks = stripTicks(52, 50);
     expect(ticks.filter((t) => t.size === 'label').map((t) => t.units)).toEqual([0, 10, 20, 30, 40, 50]);
     expect(ticks.filter((t) => t.size === 'half').map((t) => t.units)).toEqual([5, 15, 25, 35, 45]);

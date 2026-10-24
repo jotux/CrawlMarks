@@ -288,7 +288,7 @@ export function Sheet({ state, setState, result, readings }: {
       >
         {marks.length === 0 ? (
           <Tip tone="warn">
-            {recorded ? 'None of your readings fall inside the marking zone.' : `None of the 5 ${distanceUnit(state.units)} lines fall inside your marking zone.`} Check the zone on the first screen.
+            {recorded ? 'None of your readings fall on the tab face.' : `None of the 5 ${distanceUnit(state.units)} lines fall on the tab face.`}
           </Tip>
         ) : (
           <>

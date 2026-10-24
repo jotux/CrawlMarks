@@ -44,8 +44,6 @@ export function sanitizeState(raw: unknown): AppState | null {
       hand: tab.hand === 'left' ? 'left' : 'right',
       faceLength: finite(tab.faceLength, d.faceLength),
       faceWidth: finite(tab.faceWidth, d.faceWidth),
-      zoneStart: finite(tab.zoneStart, d.zoneStart),
-      zoneEnd: finite(tab.zoneEnd, d.zoneEnd),
     },
     distances,
     readings,

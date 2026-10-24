@@ -31,11 +31,9 @@ export const isPlotMode = (v: unknown): v is PlotMode => v === 'curve' || v === 
 
 export interface TabSpec {
   hand: Hand;
-  /** mm, all measured from the top edge of the tab face */
+  /** mm; the strip and the marks span the whole face length, measured from the top edge */
   faceLength: number;
   faceWidth: number;
-  zoneStart: number;
-  zoneEnd: number;
 }
 
 export interface AppState {
@@ -43,7 +41,7 @@ export interface AppState {
   tab: TabSpec;
   /** metres or yards (see units), in the order the readings list shows them (nearest first unless reordered) */
   distances: number[];
-  /** raw text typed per distance, keyed by distance: strip units, 0 at the top of the zone, SCALE_MAX at the bottom */
+  /** raw text typed per distance, keyed by distance: strip units, 0 at the top edge of the face, SCALE_MAX at the bottom */
   readings: Record<string, string>;
   minorMarks: number;
   tickStyle: TickStyle;
@@ -57,12 +55,12 @@ export const MINOR_RANGE = { min: 1, max: 10 };
 /** mm the final tab template may span: at least 10, and up to 20 wider than the setup face */
 export const templateWidthRange = (tab: TabSpec) => ({ min: 10, max: Math.max(10, tab.faceWidth + 20) });
 
-/** The sight-in strip reads 0–50 across the marking zone, whatever its size. */
+/** The sight-in strip reads 0–50 down the face length, whatever its size. */
 export const SCALE_MAX = 50;
 
 export const defaultState: AppState = {
   units: 'metric',
-  tab: { hand: 'right', faceLength: 60, faceWidth: 24, zoneStart: 6, zoneEnd: 54 },
+  tab: { hand: 'right', faceLength: 60, faceWidth: 24 },
   distances: [5, 10, 18, 25, 30, 40, 50],
   readings: {},
   minorMarks: 4,
@@ -79,7 +77,11 @@ function merge(saved: Partial<AppState>): AppState {
     ...defaultState,
     ...saved,
     units: isUnits(saved.units) ? saved.units : 'metric',
-    tab: { ...defaultState.tab, ...saved.tab },
+    tab: {
+      hand: saved.tab?.hand ?? defaultState.tab.hand,
+      faceLength: saved.tab?.faceLength ?? defaultState.tab.faceLength,
+      faceWidth: saved.tab?.faceWidth ?? defaultState.tab.faceWidth,
+    },
     readings: { ...saved.readings },
     tickStyle: isTickStyle(saved.tickStyle) ? saved.tickStyle : DEFAULT_TICK_STYLE,
     curveModel: isCurveModel(saved.curveModel) ? saved.curveModel : DEFAULT_CURVE_MODEL,
@@ -117,9 +119,8 @@ export const clampTemplateWidth = (tab: TabSpec, n: number) => {
 /** Width the final tab template is drawn at, kept inside templateWidthRange. */
 export const templateWidth = (state: AppState) => clampTemplateWidth(state.tab, state.templateWidth ?? state.tab.faceWidth);
 
-export const zoneLength = (tab: TabSpec) => tab.zoneEnd - tab.zoneStart;
 /** mm down the tab face for a strip reading */
-export const unitsToMm = (tab: TabSpec, units: number) => tab.zoneStart + (units * zoneLength(tab)) / SCALE_MAX;
+export const unitsToMm = (tab: TabSpec, units: number) => (units * tab.faceLength) / SCALE_MAX;
 
 export function parseNum(text: string): number | null {
   const t = text.trim().replace(',', '.');
@@ -128,31 +129,24 @@ export function parseNum(text: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export type TabField = 'faceLength' | 'faceWidth' | 'zoneStart' | 'zoneEnd';
+export type TabField = 'faceLength' | 'faceWidth';
 
 /** What is wrong with each tab measurement, shown under its field. */
 export function tabFieldErrors(tab: TabSpec, units: Units = 'metric'): Partial<Record<TabField, string>> {
-  const { faceLength, faceWidth, zoneStart, zoneEnd } = tab;
+  const { faceLength, faceWidth } = tab;
   const len = (mm: number) => fmtLength(mm, units);
   const out: Partial<Record<TabField, string>> = {};
   if (!(faceLength >= 20 && faceLength <= 200)) out.faceLength = `Between ${len(20)} and ${len(200)}`;
   if (!(faceWidth >= 10 && faceWidth <= 120)) out.faceWidth = `Between ${len(10)} and ${len(120)}`;
-  if (!(zoneStart >= 0)) out.zoneStart = 'Can’t start above the top edge';
-  else if (!(zoneStart < faceLength)) out.zoneStart = `Must start within the ${len(faceLength)} face`;
-  if (!(zoneEnd <= faceLength)) out.zoneEnd = `Can’t go past the ${len(faceLength)} face length`;
-  else if (!(zoneEnd > zoneStart + 5)) out.zoneEnd = `At least ${len(5)} below where it starts`;
   return out;
 }
 
 export function setupProblems(state: AppState): string[] {
-  const { faceLength, faceWidth, zoneStart, zoneEnd } = state.tab;
+  const { faceLength, faceWidth } = state.tab;
   const out: string[] = [];
   const len = (mm: number) => fmtLength(mm, state.units);
   if (!(faceLength >= 20 && faceLength <= 200)) out.push(`Face length should be between ${len(20)} and ${len(200)}.`);
   if (!(faceWidth >= 10 && faceWidth <= 120)) out.push(`Face width should be between ${len(10)} and ${len(120)}.`);
-  if (!(zoneStart >= 0)) out.push('The marking zone can’t start above the top edge.');
-  if (!(zoneEnd > zoneStart + 5)) out.push(`The marking zone needs to be at least ${len(5)} tall.`);
-  if (!(zoneEnd <= faceLength)) out.push(`The marking zone can’t go past the ${len(faceLength)} face length.`);
   if (state.distances.length < 1) out.push('Pick at least one distance.');
   return out;
 }
