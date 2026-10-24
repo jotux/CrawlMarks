@@ -11,7 +11,7 @@ import { Strip } from './Strip';
 
 const sample: AppState = {
   ...defaultState,
-  tab: { hand: 'right', faceLength: 72, faceWidth: 38 },
+  tab: { hand: 'right', faceLength: 72, faceWidth: 30 },
   curveModel: 'ballistic',
   readings: { 5: '26.5', 10: '41.5', 18: '39.5', 25: '32.5', 30: '26.5', 40: '13.5', 50: '0' },
 };
@@ -62,10 +62,10 @@ describe('screens', () => {
   });
 
   it('draw the tab template at its own width, kept in range', () => {
-    expect(render(sample).sheet).toContain('38 × 72 mm');
+    expect(render(sample).sheet).toContain('30 × 72 mm');
     expect(render({ ...sample, templateWidth: 25 }).sheet).toContain('25 × 72 mm');
-    expect(render({ ...sample, templateWidth: 200 }).sheet).toContain('58 × 72 mm');
-    expect(render({ ...sample, templateWidth: 4 }).sheet).toContain('10 × 72 mm');
+    expect(render({ ...sample, templateWidth: 200 }).sheet).toContain('50 × 72 mm');
+    expect(render({ ...sample, templateWidth: 2 }).sheet).toContain('3 × 72 mm');
   });
 
   it('allow only one point-on distance', () => {
@@ -107,7 +107,7 @@ describe('screens', () => {
 
   it('change only the preview width when the template width changes', () => {
     const px = (templateWidth: number) => Number(/template-preview" style="width:([\d.]+)px/.exec(render({ ...sample, templateWidth }).sheet)?.[1]);
-    expect(px(10) / px(58)).toBeCloseTo(10 / 58);
+    expect(px(10) / px(50)).toBeCloseTo(10 / 50);
     expect(render(sample).sheet).toContain('box-sizing:content-box');
   });
 
@@ -130,21 +130,36 @@ describe('screens', () => {
     expect(edge).not.toContain('NOCK SIDE');
   });
 
+  it('fit the numbers inside a narrow strip and leave off TOP', () => {
+    for (const width of [3, 5]) {
+      const narrow = render({ ...sample, tab: { ...sample.tab, faceWidth: width } }).strip;
+      const xs = [...narrow.matchAll(/<text x="([\d.]+)" y="[\d.]+" class="svg-mono" font-size="([\d.]+)"/g)];
+      expect(xs.length).toBeGreaterThan(0);
+      // two monospace digits are about 1.2 em wide
+      for (const [, x, size] of xs) expect(Number(x) + 1.2 * Number(size)).toBeLessThanOrEqual(width);
+      expect(narrow).not.toContain('>TOP</text>');
+    }
+  });
+
   it('flag tab measurements on their own fields', () => {
     const tab = (patch: Partial<AppState['tab']>) => render({ ...sample, tab: { ...sample.tab, ...patch } }).setup;
     const short = tab({ faceLength: 10 });
     expect(short).toContain('Between 20 mm and 200 mm');
     expect(short).toContain('field-box invalid');
-    expect(tab({ faceWidth: 5 })).toContain('Between 10 mm and 120 mm');
+    expect(tab({ faceWidth: 2 })).toContain('Between 3 mm and 35 mm');
+    expect(tab({ faceWidth: 36 })).toContain('Between 3 mm and 35 mm');
+    expect(render({ ...sample, units: 'imperial', tab: { ...sample.tab, faceWidth: 30 } }).setup).toContain('Between 1/8 in and 1 in');
+    expect(render({ ...sample, units: 'imperial', tab: { ...sample.tab, faceWidth: 25.4 / 8 } }).setup).not.toContain('field-box invalid');
+    expect(tab({ faceWidth: 5 })).not.toContain('field-box invalid');
     expect(tab({ faceLength: 72 })).not.toContain('field-box invalid');
     expect(render(sample).setup).not.toContain('field-box invalid');
   });
 
-  it('offer 80 and 90 m, and start from a 60 × 24 mm tab', () => {
+  it('offer 80 and 90 m, and start from a 60 × 5 mm tab', () => {
     const setup = render(defaultState).setup;
     expect(setup).toContain('80 m');
     expect(setup).toContain('90 m');
-    expect(defaultState.tab).toMatchObject({ faceLength: 60, faceWidth: 24 });
+    expect(defaultState.tab).toMatchObject({ faceLength: 60, faceWidth: 5 });
     expect(setup).not.toContain('field-box invalid');
   });
 
@@ -158,7 +173,7 @@ describe('screens', () => {
     expect(html.strip).toContain('this bar = 2 in');
     expect(html.readings).toContain('20 yd');
     expect(html.sheet).toContain('Every 5 yd');
-    expect(html.sheet).toContain('1.5 × 2.83 in');
+    expect(html.sheet).toContain('1.18 × 2.83 in');
     expect(html.sheet).not.toMatch(/\d m</);
   });
 

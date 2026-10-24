@@ -5,10 +5,10 @@ import { fmtLength } from '../state';
 // Screen-only explainer, drawn in px. The tab is a simple picture of a real barebow tab
 // (leather, then a black plate with a ruler along the seam), so its colours are fixed;
 // the face outline, dimension lines and labels follow the theme.
-const W = 340, H = 256;
-const TOP = 46, MAX_H = 158, MAX_W = 200;
-/** plate width, and leather width, as multiples of the face width and length */
-const PLATE = 1.4, LEATHER = 0.65;
+const W = 250, H = 250;
+const TOP = 44, MAX_H = 166, MAX_W = 196;
+/** px: the leather, and the band of plate beyond the face, are the same size whatever the face */
+const LEATHER = 92, BAND = 26;
 /** room beside the plate for the face length dimension and its label */
 const LENGTH_LABEL = 34;
 const ink = { fill: 'var(--ink)' };
@@ -34,9 +34,9 @@ function Dim({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: numbe
  * y = 0. Mirrored by the caller for a left-handed tab. `mm` is px per millimetre, for the ruler.
  */
 function TabPicture({ w, h, mm, id }: { w: number; h: number; mm: number; id: string }) {
-  const p = w * PLATE;
-  const l = h * LEATHER;
-  const r = h * 0.05;
+  const p = w + BAND;
+  const l = LEATHER;
+  const r = 6;
   // square at the seam, rounded at the outer corners
   const plate = `M 0 0 H ${p - r * 2} Q ${p} 0 ${p} ${r * 2} V ${h - r * 2} Q ${p} ${h} ${p - r * 2} ${h} H 0 Z`;
   const ticks: number[] = [];
@@ -49,7 +49,7 @@ function TabPicture({ w, h, mm, id }: { w: number; h: number; mm: number; id: st
       <path d={plate} fill={`url(#${id}-plate)`} stroke="#55595F" strokeWidth="0.75" />
       {/* ruler along the seam, ticked every 2 mm and longer every 10 */}
       {ticks.map((t) => (
-        <line key={t} x1={0} x2={t % 10 === 0 ? w * 0.22 : w * 0.12} y1={t * mm} y2={t * mm} stroke="#EDEDED" strokeWidth="0.75" />
+        <line key={t} x1={0} x2={t % 10 === 0 ? 7 : 4} y1={t * mm} y2={t * mm} stroke="#EDEDED" strokeWidth="0.75" />
       ))}
     </g>
   );
@@ -62,8 +62,8 @@ export function TabDiagram({ tab, units }: { tab: TabSpec; units: Units }) {
   const id = `tab${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const length = Math.max(tab.faceLength, 1);
   const width = Math.max(tab.faceWidth, 1);
-  const scale = Math.min(MAX_H / length, MAX_W / (width * PLATE + length * LEATHER));
-  const w = width * scale, h = length * scale, p = w * PLATE, l = h * LEATHER;
+  const scale = Math.min(MAX_H / length, (MAX_W - LEATHER - BAND) / width);
+  const w = width * scale, h = length * scale, p = w + BAND, l = LEATHER;
   const left = tab.hand === 'left';
   // the seam: leather on one side, plate then the length label on the other, all centred.
   // Plate on the right for a right-handed tab, mirrored for a left.
@@ -93,9 +93,9 @@ export function TabDiagram({ tab, units }: { tab: TabSpec; units: Units }) {
 
       {/* the face: on the plate, over the ruler */}
       <rect x={faceL} y={TOP} width={w} height={h} style={{ fill: 'var(--teal)', stroke: 'var(--teal)' }}
-        fillOpacity="0.22" strokeWidth="1.5" strokeDasharray="4 3" />
-      <text x={(faceL + faceR) / 2} y={TOP + h / 2} className="diagram-label" textAnchor="middle" dominantBaseline="central"
-        fill="#FFFFFF" fontWeight={600}>face</text>
+        fillOpacity="0.9" strokeWidth="1.5" />
+      <text transform={`translate(${(faceL + faceR) / 2} ${TOP + h / 2}) rotate(-90)`} className="diagram-label" textAnchor="middle"
+        dominantBaseline="central" style={{ fill: 'var(--on-teal)' }} fontWeight={600}>Marking area</text>
 
       {/* top edge: where every measurement starts */}
       <line x1={faceL - 3} x2={faceR + 3} y1={TOP} y2={TOP} style={{ stroke: 'var(--accent)' }} strokeWidth="3.5" strokeLinecap="round" />

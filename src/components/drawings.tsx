@@ -112,6 +112,10 @@ export function Logo({ x, y, width }: { x: number; y: number; width: number }) {
  * middles may sit (more room at the bottom, where the corner curves in under them).
  */
 const STRIP_LABEL = { size: 2.6, top: 1.7, bottom: 3.2 };
+/** Strips at least this wide get full-size ticks and numbers; narrower ones scale down to fit. */
+const FULL_STRIP_WIDTH = 16;
+/** Smallest number size, on the narrowest (3 mm) strip; still readable in print. */
+const MIN_LABEL_SIZE = 1.5;
 
 export function StripDrawing({ tab, trueSize }: { tab: TabSpec; trueSize?: boolean }) {
   const { faceWidth: w, faceLength: h } = tab;
@@ -120,7 +124,12 @@ export function StripDrawing({ tab, trueSize }: { tab: TabSpec; trueSize?: boole
   const left = tab.hand === 'right';
   const x0 = left ? 0 : w;
   const dir = left ? 1 : -1;
-  const LEN = { label: 7, half: 5, small: 3 };
+  // on a narrow strip everything shrinks, and the numbers move in so "50" still fits before the far edge
+  const k = Math.min(1, w / FULL_STRIP_WIDTH);
+  // two digits plus a short tick take about 2.2 font sizes, plus a little air
+  const fontSize = Math.min(STRIP_LABEL.size, Math.max(MIN_LABEL_SIZE, (w - 0.8) / 2.2));
+  const numberX = Math.min(8.5 * k, w - fontSize * 1.2 - 0.2);
+  const LEN = { label: Math.min(7 * k, numberX - 0.3), half: 5 * k, small: 3 * k };
   // each tick starts at the cut line, so in the rounded corners it steps in and keeps its full length
   const edge = (y: number) => x0 + dir * faceInset(w, h, y);
   // numbers stay inside the strip at 0 and SCALE_MAX, which sit on its top and bottom edges
@@ -138,14 +147,17 @@ export function StripDrawing({ tab, trueSize }: { tab: TabSpec; trueSize?: boole
       {ticks.filter((t) => t.size === 'label').map((t) => {
         const y = labelY(unitsToMm(tab, t.units));
         return (
-          <text key={t.units} x={edge(y) + dir * 8.5} y={y} className="svg-mono" fontSize={STRIP_LABEL.size}
+          <text key={t.units} x={edge(y) + dir * numberX} y={y} className="svg-mono" fontSize={fontSize}
             dominantBaseline="central" textAnchor={left ? 'start' : 'end'}>
             {t.units}
           </text>
         );
       })}
-      <text x={left ? w - corner : corner} y={1.1} className="svg-sans" fontSize={2} fontWeight={600} fill="#4A5650"
-        textAnchor={left ? 'end' : 'start'} dominantBaseline="hanging" letterSpacing={0.15}>TOP</text>
+      {/* on a narrow strip TOP would sit on the 0; the 0 shows which end is up */}
+      {k === 1 && (
+        <text x={left ? w - corner : corner} y={1.1} className="svg-sans" fontSize={2} fontWeight={600} fill="#4A5650"
+          textAnchor={left ? 'end' : 'start'} dominantBaseline="hanging" letterSpacing={0.15}>TOP</text>
+      )}
     </svg>
   );
 }

@@ -52,15 +52,23 @@ export interface AppState {
 }
 
 export const MINOR_RANGE = { min: 1, max: 10 };
-/** mm the final tab template may span: at least 10, and up to 20 wider than the setup face */
-export const templateWidthRange = (tab: TabSpec) => ({ min: 10, max: Math.max(10, tab.faceWidth + 20) });
+/** Face widths allowed, in mm, with how each end reads: 3–35 mm, or 1/8–1 in. */
+export const FACE_WIDTH_RANGE: Record<Units, { min: number; max: number; labels: [string, string] }> = {
+  metric: { min: 3, max: 35, labels: ['3 mm', '35 mm'] },
+  imperial: { min: MM_PER_IN / 8, max: MM_PER_IN, labels: ['1/8 in', '1 in'] },
+};
+/** mm the final tab template may span: at least the narrowest face, and up to 20 wider than the setup face */
+export const templateWidthRange = (tab: TabSpec) => {
+  const min = FACE_WIDTH_RANGE.metric.min;
+  return { min, max: Math.max(min, tab.faceWidth + 20) };
+};
 
 /** The sight-in strip reads 0–50 down the face length, whatever its size. */
 export const SCALE_MAX = 50;
 
 export const defaultState: AppState = {
   units: 'metric',
-  tab: { hand: 'right', faceLength: 60, faceWidth: 24 },
+  tab: { hand: 'right', faceLength: 60, faceWidth: 5 },
   distances: [5, 10, 18, 25, 30, 40, 50],
   readings: {},
   minorMarks: 4,
@@ -131,13 +139,20 @@ export function parseNum(text: string): number | null {
 
 export type TabField = 'faceLength' | 'faceWidth';
 
+/** True when the width is inside FACE_WIDTH_RANGE for the units (with room for mm↔in rounding). */
+const faceWidthOk = (mm: number, units: Units) => {
+  const { min, max } = FACE_WIDTH_RANGE[units];
+  return mm >= min - 0.01 && mm <= max + 0.01;
+};
+
 /** What is wrong with each tab measurement, shown under its field. */
 export function tabFieldErrors(tab: TabSpec, units: Units = 'metric'): Partial<Record<TabField, string>> {
   const { faceLength, faceWidth } = tab;
   const len = (mm: number) => fmtLength(mm, units);
+  const [minW, maxW] = FACE_WIDTH_RANGE[units].labels;
   const out: Partial<Record<TabField, string>> = {};
   if (!(faceLength >= 20 && faceLength <= 200)) out.faceLength = `Between ${len(20)} and ${len(200)}`;
-  if (!(faceWidth >= 10 && faceWidth <= 120)) out.faceWidth = `Between ${len(10)} and ${len(120)}`;
+  if (!faceWidthOk(faceWidth, units)) out.faceWidth = `Between ${minW} and ${maxW}`;
   return out;
 }
 
@@ -145,8 +160,9 @@ export function setupProblems(state: AppState): string[] {
   const { faceLength, faceWidth } = state.tab;
   const out: string[] = [];
   const len = (mm: number) => fmtLength(mm, state.units);
+  const [minW, maxW] = FACE_WIDTH_RANGE[state.units].labels;
   if (!(faceLength >= 20 && faceLength <= 200)) out.push(`Face length should be between ${len(20)} and ${len(200)}.`);
-  if (!(faceWidth >= 10 && faceWidth <= 120)) out.push(`Face width should be between ${len(10)} and ${len(120)}.`);
+  if (!faceWidthOk(faceWidth, state.units)) out.push(`Face width should be between ${minW} and ${maxW}.`);
   if (state.distances.length < 1) out.push('Pick at least one distance.');
   return out;
 }
