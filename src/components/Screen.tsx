@@ -49,7 +49,7 @@ function Sidebar({ step }: { step: number }) {
           ))}
         </ol>
       </nav>
-      <a className="sidebar-kofi" href={KOFI_URL} target="_blank" rel="noopener">Support on Ko-fi</a>
+      <a className="sidebar-kofi" href={KOFI_URL} target="_blank" rel="noopener">Buy me an arrow</a>
     </aside>
   );
 }

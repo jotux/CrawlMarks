@@ -216,7 +216,7 @@ export function SetupControl({ variant }: { variant: 'header' | 'sidebar' }) {
     { label: 'New setup', run: () => guard('Start a new setup?', api.startNew) },
     'divider',
     // in a new tab, so the setup being worked on stays put
-    { label: 'Support on Ko-fi', run: () => window.open(KOFI_URL, '_blank', 'noopener') },
+    { label: 'Buy me an arrow', run: () => window.open(KOFI_URL, '_blank', 'noopener') },
   ];
 
   return (
