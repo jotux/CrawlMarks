@@ -8,6 +8,9 @@ import {
 import { AppState, defaultState, validReadings } from '../state';
 import { StepId } from '../steps';
 
+/** Where donations go: in the menu, and at the foot of the sidebar on desktop. */
+export const KOFI_URL = 'https://ko-fi.com/F3I529J4CF';
+
 export interface SetupsApi {
   state: AppState;
   current: CurrentSetup;
@@ -211,6 +214,9 @@ export function SetupControl({ variant }: { variant: 'header' | 'sidebar' }) {
     { label: 'Share link', run: () => setDialog({ kind: 'share' }) },
     'divider',
     { label: 'New setup', run: () => guard('Start a new setup?', api.startNew) },
+    'divider',
+    // in a new tab, so the setup being worked on stays put
+    { label: 'Support on Ko-fi', run: () => window.open(KOFI_URL, '_blank', 'noopener') },
   ];
 
   return (

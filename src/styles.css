@@ -284,6 +284,11 @@ h1, h2, p { margin: 0; }
   }
   .step-nav a[aria-current='step'] .step-num { border-color: var(--teal); background: var(--teal); color: var(--on-teal); }
   .step-nav a.done .step-num { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+  .sidebar-kofi {
+    margin-top: auto; padding: 10px 12px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-weight: 500; font-size: 14px;
+  }
+  .sidebar-kofi:hover { background: var(--surface-sunk); color: var(--ink); }
 
   .desktop .screen-body { width: 100%; max-width: 1160px; margin: 0 auto; padding: 0 48px; }
   .desktop .main { padding: 40px 0 24px; gap: 24px; }
