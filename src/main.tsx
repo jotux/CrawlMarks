@@ -18,3 +18,6 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
+
+// offline support (public/sw.js), in the built app only: the dev server's files change too often to cache
+if (import.meta.env.PROD && 'serviceWorker' in navigator) void navigator.serviceWorker.register('sw.js');

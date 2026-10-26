@@ -59,6 +59,10 @@ The hosted site at www.crawlmarks.app counts visits with Cloudflare Web Analytic
 
 Printing uses the browser's own print dialog, which can also save to PDF. The strip, tab template and key card print at true millimetre size, so always print at 100% scale.
 
+## Home screen, offline and sharing
+
+On iPhone, Share → Add to Home Screen installs it with its own icon (`public/apple-touch-icon.png`) and opens it full screen. `public/sw.js` keeps a copy of the app once it has been opened, so it starts from the home screen with no signal; with a connection it always loads the latest version. `public/og-image.png` (1200 × 630) is the card shown when a link is shared in iMessage, WhatsApp, Slack and the like, set by the `og:` tags in `index.html`.
+
 ## Development
 
 Requires Node 18 or newer.
