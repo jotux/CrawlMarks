@@ -8,7 +8,8 @@ import {
 import { AppState, defaultState, validReadings } from '../state';
 import { StepId } from '../steps';
 
-/** Where donations go: in the menu, and at the foot of the sidebar on desktop. */
+/** Feedback (the form opens with CrawlMarks picked) and donations: in the menu, and at the foot of the sidebar on desktop. */
+export const FEEDBACK_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeb-l9rLaZKnhJ7bXVsEKB-LSi4JHMoBKxBJUnZGYwJsY_JsQ/viewform?usp=pp_url&entry.88605366=CrawlMarks';
 export const KOFI_URL = 'https://ko-fi.com/F3I529J4CF';
 
 export interface SetupsApi {
@@ -215,7 +216,8 @@ export function SetupControl({ variant }: { variant: 'header' | 'sidebar' }) {
     'divider',
     { label: 'New setup', run: () => guard('Start a new setup?', api.startNew) },
     'divider',
-    // in a new tab, so the setup being worked on stays put
+    // both in a new tab, so the setup being worked on stays put
+    { label: 'Send feedback', run: () => window.open(FEEDBACK_URL, '_blank', 'noopener') },
     { label: 'Buy me an arrow', run: () => window.open(KOFI_URL, '_blank', 'noopener') },
   ];
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { KOFI_URL, SetupControl } from './Setups';
+import { FEEDBACK_URL, KOFI_URL, SetupControl } from './Setups';
 import { STEPS, StepId } from '../steps';
 // bump package.json "version" with each fix or feature; only this field is bundled
 import { version } from '../../package.json';
@@ -49,7 +49,10 @@ function Sidebar({ step }: { step: number }) {
           ))}
         </ol>
       </nav>
-      <a className="sidebar-kofi" href={KOFI_URL} target="_blank" rel="noopener">Buy me an arrow</a>
+      <div className="sidebar-foot">
+        <a className="sidebar-link" href={FEEDBACK_URL} target="_blank" rel="noopener">Send feedback</a>
+        <a className="sidebar-link" href={KOFI_URL} target="_blank" rel="noopener">Buy me an arrow</a>
+      </div>
     </aside>
   );
 }
